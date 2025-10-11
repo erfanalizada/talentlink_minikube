@@ -1,0 +1,18 @@
+{
+  "spec": {
+    "ports": [
+      {
+        "name": "http",
+        "port": 8080,
+        "targetPort": 80,
+        "protocol": "TCP"
+      },
+      {
+        "name": "https",
+        "port": 8443,
+        "targetPort": 443,
+        "protocol": "TCP"
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+what Dockerfile and nginx.conf files does is the following:
+
+Copies your talentlink_frontend folder into /app/ inside the build container.
+
+Switches working dir into /app/talentlink_frontend.
+
+Runs flutter build web --release, which creates /app/talentlink_frontend/build/web.
+
+Copies that into /usr/share/nginx/html of the Nginx container.
+
+Nginx serves it on port 80.

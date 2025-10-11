@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backend-stresstest
+  namespace: talentlink-local
+spec:
+  template:
+    spec:
+      hostAliases:
+        - ip: "192.168.49.2"  # Replace with your `minikube ip`
+          hostnames:
+            - "talentlink.local"
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          command:
+            - "sh"
+            - "-c"
+            - >
+              k6 run /scripts/backend_stress_test.js
+              --summary-export=/output/backend_stress_result.json
+              | tee /output/backend_stress_log.txt
+          volumeMounts:
+            - name: test-scripts
+              mountPath: /scripts
+            - name: test-results
+              mountPath: /output
+      restartPolicy: Never
+      volumes:
+        - name: test-scripts
+          configMap:
+            name: backend-stress-scripts
+        - name: test-results
+          hostPath:
+            path: /data/results
+            type: DirectoryOrCreate

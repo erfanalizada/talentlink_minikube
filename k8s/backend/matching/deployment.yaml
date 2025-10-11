@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matching-service
+  namespace: talentlink-local
+  labels:
+    app: matching-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: matching-service
+  template:
+    metadata:
+      labels:
+        app: matching-service
+    spec:
+      containers:
+        - name: matching-service
+          image: matching-service:latest        # 👈 Local Minikube image
+          imagePullPolicy: Never                # 👈 Don’t pull from GHCR
+          ports:
+            - containerPort: 5000
+          env:
+            - name: ENVIRONMENT
+              value: local
+          readinessProbe:
+            httpGet:
+              path: /api/matching/health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/matching/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 20
