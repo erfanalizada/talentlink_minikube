@@ -1,0 +1,144 @@
+// docker@minikube:~$ python3 -m json.tool /data/results/frontend_result.json
+
+Frontend Load Test Summary: Frontend endpoints completed 1,822 requests (20 virtual users) with 100% success;
+average response time 0.46 ms (p95 ≈ 0.62 ms, max ≈ 0.92 ms);
+all responses under 500 ms as expected; throughput ≈ 15 req/s; frontend layer demonstrated excellent stability
+and ultra-low latency under nominal load.
+
+{
+    "metrics": {
+        "iteration_duration": {
+            "avg": 1001.2781562930857,
+            "min": 1000.498983,
+            "med": 1001.2963055,
+            "max": 1004.753953,
+            "p(90)": 1001.6932354,
+            "p(95)": 1001.77594425
+        },
+        "iterations": {
+            "count": 1822,
+            "rate": 15.164518400816053
+        },
+        "http_req_connecting": {
+            "avg": 0.0032563199780461026,
+            "min": 0,
+            "med": 0,
+            "max": 0.44335,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "http_req_failed": {
+            "fails": 1822,
+            "passes": 0,
+            "value": 0
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 20
+        },
+        "http_reqs": {
+            "count": 1822,
+            "rate": 15.164518400816053
+        },
+        "http_req_duration": {
+            "p(95)": 0.61733995,
+            "avg": 0.4626259335894618,
+            "min": 0.296014,
+            "med": 0.4539775,
+            "max": 0.916503,
+            "p(90)": 0.5723659999999999,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "data_received": {
+            "rate": 22686.119527620816,
+            "count": 2725712
+        },
+        "http_req_tls_handshaking": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0
+        },
+        "data_sent": {
+            "rate": 1668.097024089766,
+            "count": 200420
+        },
+        "http_req_receiving": {
+            "med": 0.086451,
+            "max": 0.491341,
+            "p(90)": 0.12238590000000003,
+            "p(95)": 0.13917739999999978,
+            "avg": 0.09136037870472004,
+            "min": 0.032864
+        },
+        "http_req_duration{expected_response:true}": {
+            "min": 0.296014,
+            "med": 0.4539775,
+            "max": 0.916503,
+            "p(90)": 0.5723659999999999,
+            "p(95)": 0.61733995,
+            "avg": 0.4626259335894618
+        },
+        "http_req_sending": {
+            "max": 0.179084,
+            "p(90)": 0.0457879,
+            "p(95)": 0.054717,
+            "avg": 0.022745579034028518,
+            "min": 0.009339,
+            "med": 0.0164365
+        },
+        "http_req_waiting": {
+            "max": 0.723541,
+            "p(90)": 0.4337741,
+            "p(95)": 0.4699879999999999,
+            "avg": 0.3485199758507134,
+            "min": 0.205854,
+            "med": 0.340008
+        },
+        "vus_max": {
+            "value": 20,
+            "min": 20,
+            "max": 20
+        },
+        "http_req_blocked": {
+            "p(90)": 0.008786,
+            "p(95)": 0.01299694999999993,
+            "avg": 0.01240385236004389,
+            "min": 0.003016,
+            "med": 0.0058765,
+            "max": 3.056002
+        },
+        "checks": {
+            "passes": 3644,
+            "fails": 0,
+            "value": 1
+        }
+    },
+    "root_group": {
+        "checks": {
+            "status is 200": {
+                "name": "status is 200",
+                "path": "::status is 200",
+                "id": "6210a8cd14cd70477eba5c5e4cb3fb5f",
+                "passes": 1822,
+                "fails": 0
+            },
+            "response time < 500ms": {
+                "id": "3e02485a995423a591645f4eee6c60eb",
+                "passes": 1822,
+                "fails": 0,
+                "name": "response time < 500ms",
+                "path": "::response time < 500ms"
+            }
+        },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {}
+    }
+}

@@ -1,0 +1,54 @@
+{
+  "performance_tests": [
+    {
+      "type": "Load Test",
+      "purpose": "Validate system performance and stability under expected or typical user traffic.",
+      "load_level": "Normal to slightly above normal load (e.g., 50 virtual users).",
+      "key_metrics": [
+        "Average response time",
+        "95th percentile latency",
+        "Error rate",
+        "Throughput"
+      ],
+      "tests_aspect": [
+        "Baseline performance under realistic usage",
+        "System stability and reliability",
+        "Compliance with performance SLAs"
+      ],
+      "example_finding": "System maintained sub-2 ms average response and 0% failure rate under 50 VUs."
+    },
+    {
+      "type": "Scalability Test",
+      "purpose": "Evaluate how performance and resource utilization change as load increases.",
+      "load_level": "Incrementally increasing load (e.g., 50 → 400 virtual users).",
+      "key_metrics": [
+        "Throughput vs. concurrency",
+        "Response time growth",
+        "CPU and memory usage",
+        "Autoscaling behavior"
+      ],
+      "tests_aspect": [
+        "System scalability",
+        "Resource efficiency",
+        "Bottleneck detection under high concurrency"
+      ],
+      "example_finding": "System scaled linearly up to 400 VUs with minimal latency increase; slight slowdown observed on /auth endpoint."
+    },
+    {
+      "type": "Stress Test",
+      "purpose": "Determine breaking points and recovery behavior when pushed beyond maximum capacity.",
+      "load_level": "Extreme or abnormal load (e.g., 800+ virtual users).",
+      "key_metrics": [
+        "Error rate and failure count",
+        "Response time degradation",
+        "System recovery behavior"
+      ],
+      "tests_aspect": [
+        "System resilience under extreme load",
+        "Graceful degradation and recovery",
+        "Stability of critical endpoints"
+      ],
+      "example_finding": "At 800 VUs, 99% of requests succeeded; moderate latency rise and intermittent /auth failures mark the upper stability limit."
+    }
+  ]
+}

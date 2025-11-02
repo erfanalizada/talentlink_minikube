@@ -1,1 +1,5 @@
 flask==3.0.2
+python-keycloak
+python-dotenv
+requests
+flask-cors

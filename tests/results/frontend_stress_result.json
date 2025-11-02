@@ -1,0 +1,138 @@
+//nocker@minikube:~$ python3 -m json.tool /data/results/frontend_stress_result.json
+Frontend Stress Test Summary: Frontend endpoints successfully handled 91,461 requests (800 virtual users) with 100% success
+and no failures; average response time 8.15 ms (p95 ≈ 76.7 ms, max ≈ 179 ms);
+sustained throughput ≈ 277 req/s;
+frontend remained fully stable and responsive under extreme concurrency, with no degradation or error conditions observed.
+{
+    "root_group": {
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+            "status is 200": {
+                "name": "status is 200",
+                "path": "::status is 200",
+                "id": "6210a8cd14cd70477eba5c5e4cb3fb5f",
+                "passes": 91461,
+                "fails": 0
+            }
+        },
+        "name": "",
+        "path": ""
+    },
+    "metrics": {
+        "http_req_waiting": {
+            "p(95)": 76.359958,
+            "avg": 7.590397220793524,
+            "min": 0.260143,
+            "med": 0.90359,
+            "max": 100.817501,
+            "p(90)": 5.404759
+        },
+        "http_reqs": {
+            "count": 91461,
+            "rate": 276.88620671412497
+        },
+        "iterations": {
+            "count": 91461,
+            "rate": 276.88620671412497
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 91461,
+            "thresholds": {
+                "rate<0.05": false
+            },
+            "value": 0
+        },
+        "http_req_connecting": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.00991403813647347,
+            "min": 0,
+            "med": 0,
+            "max": 47.412303
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 76.676729,
+            "avg": 8.15373093381867,
+            "min": 0.31727,
+            "med": 1.159277,
+            "max": 179.085173,
+            "p(90)": 6.630285
+        },
+        "iteration_duration": {
+            "avg": 1011.7947946667946,
+            "min": 1000.481592,
+            "med": 1002.445389,
+            "max": 1184.684913,
+            "p(90)": 1075.858842,
+            "p(95)": 1079.152051
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "data_sent": {
+            "rate": 19935.806883416997,
+            "count": 6585192
+        },
+        "http_req_receiving": {
+            "min": 0.009118,
+            "med": 0.046872,
+            "max": 172.850076,
+            "p(90)": 0.566719,
+            "p(95)": 1.285615,
+            "avg": 0.48153571774855314
+        },
+        "vus": {
+            "value": 6,
+            "min": 2,
+            "max": 798
+        },
+        "http_req_duration": {
+            "p(90)": 6.630285,
+            "p(95)": 76.676729,
+            "avg": 8.15373093381867,
+            "min": 0.31727,
+            "med": 1.159277,
+            "max": 179.085173,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "vus_max": {
+            "value": 800,
+            "min": 800,
+            "max": 800
+        },
+        "http_req_sending": {
+            "min": 0.004148,
+            "med": 0.013125,
+            "max": 89.89499,
+            "p(90)": 0.031512,
+            "p(95)": 0.101469,
+            "avg": 0.08179799527667533
+        },
+        "checks": {
+            "passes": 91461,
+            "fails": 0,
+            "value": 1
+        },
+        "data_received": {
+            "count": 134813514,
+            "rate": 408130.2686966202
+        },
+        "http_req_blocked": {
+            "min": 0.001743,
+            "med": 0.005671,
+            "max": 81.829485,
+            "p(90)": 0.007915,
+            "p(95)": 0.01034,
+            "avg": 0.03387216163173379
+        }
+    }
+}

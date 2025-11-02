@@ -1,0 +1,176 @@
+//docker@minikube:~$ python3 -m json.tool /data/results/backend_stress_result.json
+
+Backend Stress Test Summary: All backend health endpoints (/auth, /users, /jobs, /cv, /matching, /notifications)
+were stress-tested with up to 800 virtual users over 46,202 iterations (277,212 total requests); overall success rate 99.57% 
+(276,028 passed / 1,184 failed); average response time 168.8 ms (p95 ≈ 799 ms, max ≈ 15.7 s);
+throughput ≈ 838 req/s; backend remained responsive under extreme concurrency, 
+with minor degradation and intermittent /auth failures at peak load.
+
+{
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+            "/auth/health is 200": {
+                "name": "/auth/health is 200",
+                "path": "::/auth/health is 200",
+                "id": "6cc373e1c19c8c04604fda8928dc8450",
+                "passes": 45018,
+                "fails": 1184
+            },
+            "/users/health is 200": {
+                "name": "/users/health is 200",
+                "path": "::/users/health is 200",
+                "id": "3f825f5ca091efb7218e1442e30ac6ca",
+                "passes": 46202,
+                "fails": 0
+            },
+            "/jobs/health is 200": {
+                "name": "/jobs/health is 200",
+                "path": "::/jobs/health is 200",
+                "id": "e38edecadad32408ae68e4b50be52fa0",
+                "passes": 46202,
+                "fails": 0
+            },
+            "/cv/health is 200": {
+                "name": "/cv/health is 200",
+                "path": "::/cv/health is 200",
+                "id": "fbeafcbb077548f0c6da0af9cf46f930",
+                "passes": 46202,
+                "fails": 0
+            },
+            "/matching/health is 200": {
+                "path": "::/matching/health is 200",
+                "id": "ee5c61963504ffae72b068a480124d6e",
+                "passes": 46202,
+                "fails": 0,
+                "name": "/matching/health is 200"
+            },
+            "/notifications/health is 200": {
+                "id": "a173c32d21d5b920cce3bbded5ec2020",
+                "passes": 46202,
+                "fails": 0,
+                "name": "/notifications/health is 200",
+                "path": "::/notifications/health is 200"
+            }
+        }
+    },
+    "metrics": {
+        "vus": {
+            "min": 1,
+            "max": 800,
+            "value": 1
+        },
+        "vus_max": {
+            "min": 800,
+            "max": 800,
+            "value": 800
+        },
+        "http_req_failed": {
+            "passes": 1184,
+            "fails": 276028,
+            "thresholds": {
+                "rate<0.05": false
+            },
+            "value": 0.004271099375207423
+        },
+        "http_req_sending": {
+            "avg": 0.03872646409967799,
+            "min": 0.003707,
+            "med": 0.01025,
+            "max": 87.084306,
+            "p(90)": 0.016021,
+            "p(95)": 0.03169145000000001
+        },
+        "http_reqs": {
+            "count": 277212,
+            "rate": 837.6466564080227
+        },
+        "data_sent": {
+            "rate": 74550.55242031402,
+            "count": 24671868
+        },
+        "iteration_duration": {
+            "min": 1008.061228,
+            "med": 1505.2206955000001,
+            "max": 17490.016705,
+            "p(90)": 3620.1858364000004,
+            "p(95)": 4201.0362853999995,
+            "avg": 2017.6763452145492
+        },
+        "http_req_duration": {
+            "avg": 168.8148350323146,
+            "min": 0.069746,
+            "med": 23.8276465,
+            "max": 15713.02065,
+            "p(90)": 401.3779755999999,
+            "p(95)": 799.0448224500003,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "http_req_connecting": {
+            "min": 0,
+            "med": 0,
+            "max": 100.058247,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.031482110958400054
+        },
+        "data_received": {
+            "count": 45264401,
+            "rate": 136774.64955327316
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 169.50471138545734,
+            "min": 0.069746,
+            "med": 33.8626505,
+            "max": 15713.02065,
+            "p(90)": 401.70319820000014,
+            "p(95)": 800.0486080999995
+        },
+        "http_req_receiving": {
+            "p(90)": 2.0758457999999997,
+            "p(95)": 3.926373400000004,
+            "avg": 2.1146403856001967,
+            "min": 0.011423,
+            "med": 0.059045,
+            "max": 183.126984
+        },
+        "http_req_waiting": {
+            "avg": 166.66146818261677,
+            "min": 0,
+            "med": 19.4047325,
+            "max": 15712.971925,
+            "p(90)": 400.2643118,
+            "p(95)": 798.1943169000003
+        },
+        "iterations": {
+            "count": 46202,
+            "rate": 139.60777606800377
+        },
+        "checks": {
+            "passes": 276028,
+            "fails": 1184,
+            "value": 0.9957289006247926
+        },
+        "http_req_blocked": {
+            "min": 0.001102,
+            "med": 0.003547,
+            "max": 100.145106,
+            "p(90)": 0.006162,
+            "p(95)": 0.007174,
+            "avg": 0.04242559586164792
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        }
+    }
+}
