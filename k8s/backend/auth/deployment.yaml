@@ -15,10 +15,12 @@ spec:
       labels:
         app: auth-service
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: auth-service
-          image: auth-service:latest            # 👈 Local Minikube image
-          imagePullPolicy: Never                # 👈 Prevents external pulls
+          image: ghcr.io/erfanalizada/talentlink_minikube-auth-service:latest   # 👈 GHCR image
+          imagePullPolicy: Always                           # 👈 Always pull newest
           ports:
             - containerPort: 5000
           env:

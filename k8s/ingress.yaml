@@ -4,24 +4,16 @@ metadata:
   name: talentlink-ingress
   namespace: talentlink-local
   annotations:
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
+  ingressClassName: nginx
   rules:
     - host: talentlink.local
       http:
         paths:
-          # ---------------- FRONTEND ----------------
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend-service
-                port:
-                  number: 80
 
-          # ---------------- BACKEND SERVICES ----------------
-          - path: /api/auth
+          # ---------- BACKEND SERVICES ----------
+          - path: /api/auth/
             pathType: Prefix
             backend:
               service:
@@ -29,7 +21,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/users
+          - path: /api/users/
             pathType: Prefix
             backend:
               service:
@@ -37,7 +29,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/jobs
+          - path: /api/jobs/
             pathType: Prefix
             backend:
               service:
@@ -45,7 +37,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/cv
+          - path: /api/cv/
             pathType: Prefix
             backend:
               service:
@@ -53,7 +45,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/matching
+          - path: /api/matching/
             pathType: Prefix
             backend:
               service:
@@ -61,10 +53,19 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/notifications
+          - path: /api/notifications/
             pathType: Prefix
             backend:
               service:
                 name: notification-service
                 port:
                   number: 5000
+
+          # -------- FRONTEND --------
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80

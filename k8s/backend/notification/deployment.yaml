@@ -15,10 +15,12 @@ spec:
       labels:
         app: notification-service
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: notification-service
-          image: notification-service:latest     # 👈 Local Minikube image
-          imagePullPolicy: Never                 # 👈 Don’t pull from GHCR
+          image: ghcr.io/erfanalizada/talentlink_minikube-notification-service:latest   # 👈 GHCR image
+          imagePullPolicy: Always                                   # 👈 Always pull latest
           ports:
             - containerPort: 5000
           env:

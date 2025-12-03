@@ -15,10 +15,12 @@ spec:
       labels:
         app: matching-service
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: matching-service
-          image: matching-service:latest        # 👈 Local Minikube image
-          imagePullPolicy: Never                # 👈 Don’t pull from GHCR
+          image: ghcr.io/erfanalizada/talentlink_minikube-matching-service:latest   # 👈 GHCR image
+          imagePullPolicy: Always                               # 👈 Always pull new
           ports:
             - containerPort: 5000
           env:

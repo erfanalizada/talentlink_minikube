@@ -15,10 +15,12 @@ spec:
       labels:
         app: cv-service
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: cv-service
-          image: cv-service:latest              # 👈 Built locally in Minikube
-          imagePullPolicy: Never                # 👈 Do not pull from GHCR
+          image: ghcr.io/erfanalizada/talentlink_minikube-cv-service:latest   # 👈 GHCR image
+          imagePullPolicy: Always                         # 👈 Always pull updated image
           ports:
             - containerPort: 5000
           env:

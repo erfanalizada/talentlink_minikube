@@ -15,10 +15,12 @@ spec:
       labels:
         app: job-service
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: job-service
-          image: job-service:latest              # 👈 Local Minikube image
-          imagePullPolicy: Never                 # 👈 Don’t pull from GHCR
+          image: ghcr.io/erfanalizada/talentlink_minikube-job-service:latest   # 👈 GHCR image
+          imagePullPolicy: Always                          # 👈 Always pull newest image
           ports:
             - containerPort: 5000
           env:
