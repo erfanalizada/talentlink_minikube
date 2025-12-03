@@ -12,7 +12,6 @@ spec:
       http:
         paths:
 
-          # ---------- BACKEND SERVICES ----------
           - path: /api/auth/
             pathType: Prefix
             backend:
@@ -61,7 +60,6 @@ spec:
                 port:
                   number: 5000
 
-          # -------- FRONTEND --------
           - path: /
             pathType: Prefix
             backend:

@@ -1,18 +1,38 @@
-from flask import Flask, jsonify
+"""
+Main Flask application.
+Single Responsibility: Application setup and configuration.
+Dependency Inversion: Uses dependency injection for components.
+"""
+from flask import Flask
+from flask_cors import CORS
+from database import init_db
+from routes import user_bp
 
-app = Flask(__name__)
 
-@app.route("/api/users/profile")
-def profile():
-    return jsonify({
-        "id": 1,
-        "name": "Hardcoded User",
-        "email": "user@example.com"
-    })
+def create_app():
+    """
+    Application factory pattern.
+    Open/Closed: Can extend with new configurations without modifying core logic.
+    """
+    app = Flask(__name__)
 
-@app.route("/api/users/health")
-def health():
-    return {"status": "user-service ok"}
+    # CORS configuration
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+    # Register blueprints
+    app.register_blueprint(user_bp)
+
+    # Initialize database
+    with app.app_context():
+        try:
+            init_db()
+        except Exception as e:
+            print(f"⚠️ Database initialization warning: {e}")
+
+    print("✅ User service initialized successfully")
+    return app
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app = create_app()
+    app.run(host="0.0.0.0", port=5000, debug=True)

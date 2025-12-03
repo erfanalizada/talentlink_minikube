@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter build:*)",
+      "Bash(docker build:*)",
+      "Bash(docker push:*)",
+      "Bash(kubectl logs:*)",
+      "Bash(kubectl get:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

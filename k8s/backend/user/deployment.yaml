@@ -19,22 +19,32 @@ spec:
         - name: ghcr-secret
       containers:
         - name: user-service
-          image: ghcr.io/erfanalizada/talentlink_minikube-user-service:latest   # 👈 GHCR image
-          imagePullPolicy: Always                           # 👈 Always pull newest
+          image: ghcr.io/erfanalizada/talentlink_minikube-user-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
           env:
             - name: ENVIRONMENT
               value: local
+            - name: DATABASE_URL
+              value: "postgresql://userservice:userservice123@userdb-postgres:5432/userdb"
+            - name: UPLOAD_DIR
+              value: "/app/uploads"
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
           readinessProbe:
             httpGet:
               path: /api/users/health
               port: 5000
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /api/users/health
               port: 5000
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 20
+      volumes:
+        - name: uploads
+          emptyDir: {}

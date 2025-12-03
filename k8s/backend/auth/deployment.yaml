@@ -19,22 +19,64 @@ spec:
         - name: ghcr-secret
       containers:
         - name: auth-service
-          image: ghcr.io/erfanalizada/talentlink_minikube-auth-service:latest   # 👈 GHCR image
-          imagePullPolicy: Always                           # 👈 Always pull newest
+          image: ghcr.io/erfanalizada/talentlink_minikube-auth-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
+
+          # ---------------- ENVIRONMENT VARIABLES ----------------
           env:
             - name: ENVIRONMENT
               value: local
+
+            - name: KEYCLOAK_URL
+              value: "http://keycloak:8080"
+
+            - name: KEYCLOAK_REALM
+              value: "talentlink"
+
+            - name: KEYCLOAK_PUBLIC_CLIENT_ID
+              value: "frontend-client"
+
+            - name: KEYCLOAK_CONFIDENTIAL_CLIENT_ID
+              value: "talentlink-backend"
+
+            - name: KEYCLOAK_CONFIDENTIAL_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-client-secret
+                  key: secret
+
+            - name: KEYCLOAK_ADMIN_USER
+              value: "admin"
+
+            - name: KEYCLOAK_ADMIN_PASS
+              value: "admin"
+
+          # ---------------- HEALTH CHECKS ----------------
           readinessProbe:
             httpGet:
               path: /api/auth/health
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 10
+
           livenessProbe:
             httpGet:
               path: /api/auth/health
               port: 5000
             initialDelaySeconds: 10
             periodSeconds: 20
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: talentlink-local
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - port: 5000
+      targetPort: 5000

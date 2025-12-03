@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../services/auth_service.dart';
-import '../theme/app_colors.dart';
+import '../services/user_service.dart';
+import '../repositories/user_profile_repository.dart';
+import '../models/user_profile.dart';
+import '../theme/app_theme.dart';
 import 'register_screen.dart';
+import 'profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,18 +33,69 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
+      // Login to Keycloak
       final result = await _authService.login(
         _usernameController.text.trim(),
         _passwordController.text.trim(),
       );
-      debugPrint("Access Token: ${result['access_token']}");
+
+      final accessToken = result['access_token'];
+      debugPrint("Access Token received");
+
+      // Decode JWT to get user info
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
+      final userId = decodedToken['sub']; // Keycloak user ID
+      final username = decodedToken['preferred_username'];
+      final email = decodedToken['email'];
+
+      // Get user roles from Keycloak token
+      final realmAccess = decodedToken['realm_access'];
+      final roles = List<String>.from(realmAccess['roles'] ?? []);
+
+      // Determine user role (employee or employer)
+      UserRole userRole = UserRole.employee;
+      if (roles.contains('employer')) {
+        userRole = UserRole.employer;
+      }
+
+      debugPrint("User ID: $userId, Role: ${userRole.value}");
+
+      // Initialize user service
+      final userRepository = UserProfileRepository(
+        baseUrl: 'http://talentlink.local/api/users',
+      );
+      final userService = UserService(repository: userRepository);
+
+      // Try to load existing profile, create if doesn't exist
+      UserProfile? profile;
+      try {
+        profile = await userService.loadProfile(userId);
+        debugPrint("Profile loaded successfully");
+      } catch (e) {
+        debugPrint("Profile not found, creating new profile...");
+        profile = await userService.createProfile(
+          userId: userId,
+          username: username,
+          email: email,
+          role: userRole,
+        );
+        debugPrint("Profile created successfully");
+      }
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful ✅')),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProfileScreen(
+              userService: userService,
+              initialProfile: profile,
+            ),
+          ),
         );
       }
     } catch (e) {
-      setState(() => _errorMessage = e.toString());
+      debugPrint("Login error: $e");
+      setState(() => _errorMessage = e.toString().replaceAll('Exception: ', ''));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -48,83 +104,142 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppTheme.backgroundLight,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'TalentLink Login',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Logo/Header with gradient
+                      Container(
+                        height: 80,
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.primaryGradient,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'TalentLink',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: -1,
+                            ),
                           ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(),
+                        ),
                       ),
-                      validator: (val) =>
-                          val == null || val.isEmpty ? 'Enter username' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (val) =>
-                          val == null || val.isEmpty ? 'Enter password' : null,
-                    ),
-                    const SizedBox(height: 24),
-                    if (_errorMessage != null)
+                      const SizedBox(height: 32),
                       Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
+                        'Welcome Back',
                         textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineMedium,
                       ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Sign in to continue',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Login'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const RegisterScreen()),
-                        );
-                      },
-                      child: const Text("Don't have an account? Register"),
-                    )
-                  ],
+                      const SizedBox(height: 32),
+                      TextFormField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Username',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
+                        validator: (val) =>
+                            val == null || val.isEmpty ? 'Enter username' : null,
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: Icon(Icons.lock_outline),
+                        ),
+                        validator: (val) =>
+                            val == null || val.isEmpty ? 'Enter password' : null,
+                      ),
+                      const SizedBox(height: 32),
+                      if (_errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.error.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline,
+                                  color: AppTheme.error, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(
+                                    color: AppTheme.error,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (_errorMessage != null) const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _login,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Sign In', style: TextStyle(fontSize: 16)),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: AppTheme.border)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'OR',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                          Expanded(child: Divider(color: AppTheme.border)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      OutlinedButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterScreen()),
+                          );
+                        },
+                        child: const Text('Create Account'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -132,5 +247,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

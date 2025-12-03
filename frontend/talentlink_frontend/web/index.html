@@ -33,6 +33,18 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Override the entire flutter loader initialization to disable service workers
+    window.addEventListener('load', function() {
+      if (window._flutter && window._flutter.loader) {
+        window._flutter.loader.load({
+          serviceWorkerSettings: {
+            serviceWorkerVersion: null,
+          }
+        });
+      }
+    });
+  </script>
+  <script src="flutter_bootstrap.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: userdb-postgres-pvc
+  namespace: talentlink-local
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userdb-postgres
+  namespace: talentlink-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userdb-postgres
+  template:
+    metadata:
+      labels:
+        app: userdb-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          env:
+            - name: POSTGRES_DB
+              value: userdb
+            - name: POSTGRES_USER
+              value: userservice
+            - name: POSTGRES_PASSWORD
+              value: userservice123
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: data
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - userservice
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - userservice
+            initialDelaySeconds: 10
+            periodSeconds: 20
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: userdb-postgres-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userdb-postgres
+  namespace: talentlink-local
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: userdb-postgres

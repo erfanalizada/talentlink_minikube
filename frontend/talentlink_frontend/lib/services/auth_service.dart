@@ -2,10 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  // Use http://localhost:5000/api/auth if testing locally without Minikube
-  static const String _baseUrl = "http://localhost:5000/api/auth";
+  // Correct endpoint for Kubernetes Ingress
+  static const String _baseUrl = "http://talentlink.local/api/auth";
 
-  /// Login existing user
   Future<Map<String, dynamic>> login(String username, String password) async {
     final uri = Uri.parse("$_baseUrl/login");
     final response = await http.post(
@@ -17,16 +16,11 @@ class AuthService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      try {
-        final decoded = jsonDecode(response.body);
-        throw Exception(decoded['error'] ?? 'Login failed');
-      } catch (_) {
-        throw Exception('Login failed (status ${response.statusCode})');
-      }
+      final decoded = jsonDecode(response.body);
+      throw Exception(decoded['error'] ?? 'Login failed');
     }
   }
 
-  /// Register new user
   Future<Map<String, dynamic>> register({
     required String username,
     required String email,
@@ -48,12 +42,8 @@ class AuthService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      try {
-        final decoded = jsonDecode(response.body);
-        throw Exception(decoded['error'] ?? 'Registration failed');
-      } catch (_) {
-        throw Exception('Registration failed (status ${response.statusCode})');
-      }
+      final decoded = jsonDecode(response.body);
+      throw Exception(decoded['error'] ?? 'Registration failed');
     }
   }
 
