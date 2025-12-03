@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
+import '../services/token_storage.dart';
 import '../repositories/user_profile_repository.dart';
 import '../models/user_profile.dart';
 import '../theme/app_theme.dart';
@@ -40,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final accessToken = result['access_token'];
+      final refreshToken = result['refresh_token']; // Get refresh token if available
       debugPrint("Access Token received");
 
       // Decode JWT to get user info
@@ -47,6 +49,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final userId = decodedToken['sub']; // Keycloak user ID
       final username = decodedToken['preferred_username'];
       final email = decodedToken['email'];
+
+      // Save tokens for persistence
+      await TokenStorage.saveTokens(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        userId: userId,
+      );
+      debugPrint("Tokens saved to storage");
 
       // Get user roles from Keycloak token
       final realmAccess = decodedToken['realm_access'];
