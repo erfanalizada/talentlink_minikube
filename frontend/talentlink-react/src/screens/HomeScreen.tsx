@@ -7,10 +7,12 @@ import { Job } from '../types/job';
 import { UserRole } from '../types/user';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { useMessageBox } from '../hooks/useMessageBox';
 import styles from './HomeScreen.module.css';
 
 export const HomeScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { showSuccess } = useMessageBox();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [username, setUsername] = useState<string>('Loading...');
   const [userRole, setUserRole] = useState<UserRole | null>(null);
@@ -166,7 +168,7 @@ export const HomeScreen: React.FC = () => {
           onSuccess={() => {
             setShowApplicationModal(false);
             setSelectedJob(null);
-            alert('Application submitted successfully!');
+            showSuccess('Application submitted successfully!');
           }}
         />
       )}

@@ -5,10 +5,12 @@ import { Button } from '../components/Button';
 import { JobService } from '../services/jobService';
 import { TokenStorage } from '../services/tokenStorage';
 import { Job, JobApplication } from '../types/job';
+import { useMessageBox } from '../hooks/useMessageBox';
 import styles from './ApplicationsScreen.module.css';
 
 const ApplicationsScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useMessageBox();
   const [loading, setLoading] = useState(true);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [applications, setApplications] = useState<{ [jobId: number]: JobApplication[] }>({});
@@ -88,9 +90,9 @@ const ApplicationsScreen: React.FC = () => {
         [jobId]: updatedApps,
       }));
 
-      alert(`Application ${status} successfully!`);
+      showSuccess(`Application ${status} successfully!`);
     } catch (err: any) {
-      alert(err.message || 'Failed to update application');
+      showError(err.message || 'Failed to update application');
     }
   };
 

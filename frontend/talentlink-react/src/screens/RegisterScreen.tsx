@@ -5,10 +5,12 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Select } from '../components/Select';
 import { Card } from '../components/Card';
+import { useMessageBox } from '../hooks/useMessageBox';
 import styles from './Login.module.css';
 
 export const RegisterScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { showSuccess } = useMessageBox();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -68,7 +70,7 @@ export const RegisterScreen: React.FC = () => {
         role,
       });
 
-      alert('Account created! Please login to continue.');
+      showSuccess('Account created! Please login to continue.');
       navigate('/login');
     } catch (e: any) {
       console.error('Registration error:', e);

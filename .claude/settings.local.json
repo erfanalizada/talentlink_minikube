@@ -9,7 +9,8 @@
       "Bash(flutter pub get:*)",
       "Bash(flutter clean:*)",
       "Bash(kubectl apply:*)",
-      "Bash(kubectl wait:*)"
+      "Bash(kubectl wait:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

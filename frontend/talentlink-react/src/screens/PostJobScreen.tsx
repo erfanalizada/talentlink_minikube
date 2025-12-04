@@ -5,10 +5,12 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { JobService } from '../services/jobService';
 import { TokenStorage } from '../services/tokenStorage';
+import { useMessageBox } from '../hooks/useMessageBox';
 import styles from './PostJobScreen.module.css';
 
 const PostJobScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { showSuccess } = useMessageBox();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -70,7 +72,7 @@ const PostJobScreen: React.FC = () => {
         skills: '',
       });
 
-      alert('Job posted successfully!');
+      showSuccess('Job posted successfully!');
       navigate('/home');
     } catch (err: any) {
       setError(err.message || 'Failed to post job');
