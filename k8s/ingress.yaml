@@ -6,7 +6,9 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    # Echo the request Origin so Access-Control-Allow-Credentials can be true
+    nginx.ingress.kubernetes.io/cors-allow-origin: "$http_origin"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
     nginx.ingress.kubernetes.io/cors-max-age: "86400"
@@ -17,7 +19,7 @@ spec:
       http:
         paths:
 
-          - path: /api/auth/
+          - path: /api/auth
             pathType: Prefix
             backend:
               service:
@@ -25,7 +27,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/users/
+          - path: /api/users
             pathType: Prefix
             backend:
               service:
@@ -33,7 +35,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/jobs/
+          - path: /api/jobs
             pathType: Prefix
             backend:
               service:
@@ -41,7 +43,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/applications/
+          - path: /api/applications
             pathType: Prefix
             backend:
               service:
@@ -49,7 +51,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/cv/
+          - path: /api/cv
             pathType: Prefix
             backend:
               service:
@@ -57,7 +59,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/matching/
+          - path: /api/matching
             pathType: Prefix
             backend:
               service:
@@ -65,7 +67,7 @@ spec:
                 port:
                   number: 5000
 
-          - path: /api/notifications/
+          - path: /api/notifications
             pathType: Prefix
             backend:
               service:

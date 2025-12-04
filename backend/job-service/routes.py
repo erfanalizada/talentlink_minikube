@@ -2,7 +2,8 @@
 Routes layer for HTTP endpoints.
 Single Responsibility: Handles HTTP request/response mapping.
 """
-from flask import Blueprint, request, jsonify, send_from_directory
+from flask import Blueprint, request, jsonify, send_from_directory, current_app
+from werkzeug.exceptions import BadRequest
 from database import SessionLocal
 from repositories import JobRepository, JobApplicationRepository
 from services import JobService, JobApplicationService
@@ -163,7 +164,22 @@ def delete_job(job_id):
 def apply_to_job(job_id):
     """Apply to a job (Employee only)."""
     try:
-        data = request.get_json()
+        try:
+            data = request.get_json()
+        except BadRequest as e:
+            current_app.logger.error(f"Invalid JSON in request to /api/jobs/{job_id}/apply: {e}")
+            return jsonify({"error": f"Invalid JSON payload: {str(e)}"}), 400
+
+        if not data:
+            current_app.logger.error(f"Empty JSON payload in request to /api/jobs/{job_id}/apply")
+            return jsonify({"error": "Invalid or empty JSON payload"}), 400
+
+        # Log minimal info about payload to help debugging (avoid printing full base64)
+        try:
+            cv_len = len(data.get("cv", "")) if data.get("cv") else 0
+        except Exception:
+            cv_len = 0
+        current_app.logger.info(f"Apply request to /api/jobs/{job_id}/apply - employee_id: {data.get('employee_id')}, cv_len: {cv_len}, portfolio_url_present: {bool(data.get('portfolio_url'))}")
         employee_id = data.get("employee_id")
         cv_base64 = data.get("cv")
         portfolio_url = data.get("portfolio_url")

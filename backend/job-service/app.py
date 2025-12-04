@@ -8,7 +8,11 @@ from database import init_db
 from routes import jobs_bp
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend communication
+# Enable CORS for frontend communication. Explicitly allow the frontend origin
+# and the cluster host so Access-Control-Allow-Credentials can be used safely.
+CORS(app,
+    resources={r"/api/*": {"origins": ["http://localhost:3000", "http://talentlink.local"]}},
+    supports_credentials=True)
 
 # Register blueprints
 app.register_blueprint(jobs_bp)
