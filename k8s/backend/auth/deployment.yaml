@@ -39,7 +39,7 @@ spec:
               value: "frontend-client"
 
             - name: KEYCLOAK_CONFIDENTIAL_CLIENT_ID
-              value: "talentlink-backend"
+              value: "backend-client"
 
             - name: KEYCLOAK_CONFIDENTIAL_SECRET
               valueFrom:

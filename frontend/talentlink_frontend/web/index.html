@@ -34,18 +34,19 @@
 </head>
 <body>
   <script>
-    // Override the entire flutter loader initialization to disable service workers
-    window.addEventListener('load', function() {
-      if (window._flutter && window._flutter.loader) {
-        window._flutter.loader.load({
-          serviceWorkerSettings: {
-            serviceWorkerVersion: null,
-          },
-          renderer: "html"
-        });
-      }
+    // The entrypoint file name is typically "main.dart.js", but can be customized
+    {{flutter_js}}
+    {{flutter_build_config}}
+
+    _flutter.loader.load({
+      serviceWorkerSettings: {
+        serviceWorkerVersion: {{flutter_service_worker_version}},
+      },
+      config: {
+        // Force HTML renderer to avoid CanvasKit issues with gesture detection
+        renderer: "html",
+      },
     });
   </script>
-  <script src="flutter_bootstrap.js" defer></script>
 </body>
 </html>

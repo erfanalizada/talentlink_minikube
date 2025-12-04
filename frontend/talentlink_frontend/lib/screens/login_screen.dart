@@ -7,7 +7,7 @@ import '../repositories/user_profile_repository.dart';
 import '../models/user_profile.dart';
 import '../theme/app_theme.dart';
 import 'register_screen.dart';
-import 'profile_screen.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -77,13 +77,12 @@ class _LoginScreenState extends State<LoginScreen> {
       final userService = UserService(repository: userRepository);
 
       // Try to load existing profile, create if doesn't exist
-      UserProfile? profile;
       try {
-        profile = await userService.loadProfile(userId);
+        await userService.loadProfile(userId);
         debugPrint("Profile loaded successfully");
       } catch (e) {
         debugPrint("Profile not found, creating new profile...");
-        profile = await userService.createProfile(
+        await userService.createProfile(
           userId: userId,
           username: username,
           email: email,
@@ -92,14 +91,12 @@ class _LoginScreenState extends State<LoginScreen> {
         debugPrint("Profile created successfully");
       }
 
+      // Navigate to home screen
       if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => ProfileScreen(
-              userService: userService,
-              initialProfile: profile,
-            ),
+            builder: (_) => HomeScreen(userId: userId),
           ),
         );
       }

@@ -86,6 +86,8 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
+import 'services/token_storage.dart';
 
 void main() {
   runApp(const TalentLinkApp());
@@ -100,7 +102,54 @@ class TalentLinkApp extends StatelessWidget {
       title: 'TalentLink',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const LoginScreen(),
+      home: const AuthWrapper(),
     );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _isLoading = true;
+  bool _isAuthenticated = false;
+  String? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  Future<void> _checkAuthentication() async {
+    final isAuth = await TokenStorage.isAuthenticated();
+    final userId = await TokenStorage.getUserId();
+
+    setState(() {
+      _isAuthenticated = isAuth;
+      _userId = userId;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_isAuthenticated && _userId != null) {
+      return HomeScreen(userId: _userId!);
+    }
+
+    return const LoginScreen();
   }
 }
