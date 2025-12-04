@@ -4,6 +4,8 @@ Single Responsibility: Handles HTTP request/response mapping.
 """
 from flask import Blueprint, request, jsonify, send_from_directory, current_app
 from werkzeug.exceptions import BadRequest
+from werkzeug.utils import secure_filename
+import os
 from database import SessionLocal
 from repositories import JobRepository, JobApplicationRepository
 from services import JobService, JobApplicationService
@@ -164,37 +166,69 @@ def delete_job(job_id):
 def apply_to_job(job_id):
     """Apply to a job (Employee only)."""
     try:
-        try:
-            data = request.get_json()
-        except BadRequest as e:
-            current_app.logger.error(f"Invalid JSON in request to /api/jobs/{job_id}/apply: {e}")
-            return jsonify({"error": f"Invalid JSON payload: {str(e)}"}), 400
+        # Support both JSON (base64 CV) and multipart/form-data (file upload)
+        if request.content_type and request.content_type.startswith('multipart/form-data'):
+            # Form-based upload
+            employee_id = request.form.get('employee_id')
+            cv_file = request.files.get('cv')
+            portfolio_url = request.form.get('portfolio_url')
 
-        if not data:
-            current_app.logger.error(f"Empty JSON payload in request to /api/jobs/{job_id}/apply")
-            return jsonify({"error": "Invalid or empty JSON payload"}), 400
+            current_app.logger.info(f"Multipart apply request to /api/jobs/{job_id}/apply - employee_id: {employee_id}, cv_file: {getattr(cv_file, 'filename', None)}, portfolio_url_present: {bool(portfolio_url)}")
 
-        # Log minimal info about payload to help debugging (avoid printing full base64)
-        try:
-            cv_len = len(data.get("cv", "")) if data.get("cv") else 0
-        except Exception:
-            cv_len = 0
-        current_app.logger.info(f"Apply request to /api/jobs/{job_id}/apply - employee_id: {data.get('employee_id')}, cv_len: {cv_len}, portfolio_url_present: {bool(data.get('portfolio_url'))}")
-        employee_id = data.get("employee_id")
-        cv_base64 = data.get("cv")
-        portfolio_url = data.get("portfolio_url")
+            if not employee_id:
+                return jsonify({"error": "employee_id is required"}), 400
+            if not cv_file:
+                return jsonify({"error": "cv file is required"}), 400
 
-        if not employee_id:
-            return jsonify({"error": "employee_id is required"}), 400
-        if not cv_base64:
-            return jsonify({"error": "cv is required"}), 400
+            # Save uploaded file to uploads directory
+            upload_dir = "/app/uploads/cvs"
+            os.makedirs(upload_dir, exist_ok=True)
+            filename = secure_filename(f"{employee_id}_{job_id}_{cv_file.filename}")
+            filepath = os.path.join(upload_dir, filename)
+            cv_file.save(filepath)
+            cv_url = f"/api/jobs/uploads/cvs/{filename}"
 
-        service, db = get_application_service()
-        try:
-            application = service.create_application(job_id, employee_id, cv_base64, portfolio_url)
-            return jsonify(application.to_dict()), 201
-        finally:
-            db.close()
+            service, db = get_application_service()
+            try:
+                # Pass cv_url to service which will accept an already-saved file
+                application = service.create_application(job_id, employee_id, cv_base64=None, portfolio_url=portfolio_url, cv_url=cv_url)
+                return jsonify(application.to_dict()), 201
+            finally:
+                db.close()
+        else:
+            # JSON-based upload (existing behavior)
+            try:
+                data = request.get_json()
+            except BadRequest as e:
+                current_app.logger.error(f"Invalid JSON in request to /api/jobs/{job_id}/apply: {e}")
+                return jsonify({"error": f"Invalid JSON payload: {str(e)}"}), 400
+
+            if not data:
+                current_app.logger.error(f"Empty JSON payload in request to /api/jobs/{job_id}/apply")
+                return jsonify({"error": "Invalid or empty JSON payload"}), 400
+
+            # Log minimal info about payload to help debugging (avoid printing full base64)
+            try:
+                cv_len = len(data.get("cv", "")) if data.get("cv") else 0
+            except Exception:
+                cv_len = 0
+            current_app.logger.info(f"JSON apply request to /api/jobs/{job_id}/apply - employee_id: {data.get('employee_id')}, cv_len: {cv_len}, portfolio_url_present: {bool(data.get('portfolio_url'))}")
+
+            employee_id = data.get("employee_id")
+            cv_base64 = data.get("cv")
+            portfolio_url = data.get("portfolio_url")
+
+            if not employee_id:
+                return jsonify({"error": "employee_id is required"}), 400
+            if not cv_base64:
+                return jsonify({"error": "cv is required"}), 400
+
+            service, db = get_application_service()
+            try:
+                application = service.create_application(job_id, employee_id, cv_base64, portfolio_url)
+                return jsonify(application.to_dict()), 201
+            finally:
+                db.close()
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

@@ -24,8 +24,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Create a non-root user for security
-RUN useradd -m appuser
+# Create uploads directory and set ownership so the non-root user can write to it
+RUN mkdir -p /app/uploads/cvs \
+    && useradd -m appuser \
+    && chown -R appuser:appuser /app/uploads
+
+# Switch to non-root user for running the app
 USER appuser
 
 # Expose Flask port

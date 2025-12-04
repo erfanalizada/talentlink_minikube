@@ -99,7 +99,8 @@ class JobApplicationService:
         self.job_repository = job_repository
 
     def create_application(self, job_id: int, employee_id: str,
-                          cv_base64: str, portfolio_url: Optional[str]) -> JobApplication:
+                          cv_base64: Optional[str] = None, portfolio_url: Optional[str] = None,
+                          cv_url: Optional[str] = None) -> JobApplication:
         """Create a new job application."""
         # Verify job exists
         job = self.job_repository.get_by_id(job_id)
@@ -112,8 +113,12 @@ class JobApplicationService:
             if app.job_id == job_id:
                 raise ValueError("You have already applied to this job")
 
-        # Save CV file
-        cv_url = self._save_cv(employee_id, job_id, cv_base64)
+        # Determine CV URL: either an already-saved file (cv_url provided)
+        # or save from base64 payload
+        if cv_url is None:
+            if not cv_base64:
+                raise ValueError("cv is required")
+            cv_url = self._save_cv(employee_id, job_id, cv_base64)
 
         application = JobApplication(
             job_id=job_id,
