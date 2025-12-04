@@ -16,6 +16,12 @@ export interface JobApplication {
   cv_url: string;
   portfolio_url?: string;
   status: 'pending' | 'accepted' | 'rejected';
+  employee_profile?: {
+    username: string;
+    email: string;
+    phone: string | null;
+    description: string | null;
+  };
   created_at: string;
   updated_at?: string;
 }

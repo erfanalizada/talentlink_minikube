@@ -69,6 +69,12 @@ class JobApplication(Base):
     portfolio_url = Column(String(500), nullable=True)
     status = Column(Enum(ApplicationStatus), nullable=False, default=ApplicationStatus.PENDING)
 
+    # Employee profile information (cached from user-service)
+    employee_username = Column(String(255), nullable=True)
+    employee_email = Column(String(255), nullable=True)
+    employee_phone = Column(String(50), nullable=True)
+    employee_description = Column(Text, nullable=True)
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -82,6 +88,12 @@ class JobApplication(Base):
             "cv_url": self.cv_url,
             "portfolio_url": self.portfolio_url,
             "status": self.status.value if self.status else None,
+            "employee_profile": {
+                "username": self.employee_username,
+                "email": self.employee_email,
+                "phone": self.employee_phone,
+                "description": self.employee_description,
+            } if self.employee_username else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

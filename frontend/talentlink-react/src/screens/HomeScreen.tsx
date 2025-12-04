@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TokenStorage } from '../services/tokenStorage';
+import { UserService } from '../services/userService';
 import { JobService } from '../services/jobService';
 import { Job } from '../types/job';
 import { UserRole } from '../types/user';
@@ -13,6 +14,7 @@ export const HomeScreen: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [username, setUsername] = useState<string>('Loading...');
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -23,7 +25,7 @@ export const HomeScreen: React.FC = () => {
     loadJobs();
   }, []);
 
-  const loadUserInfo = () => {
+  const loadUserInfo = async () => {
     const decodedToken = TokenStorage.getDecodedToken();
     if (decodedToken) {
       setUsername(decodedToken.preferred_username || 'User');
@@ -34,6 +36,18 @@ export const HomeScreen: React.FC = () => {
         setUserRole(UserRole.EMPLOYER);
       } else if (roles.includes('employee')) {
         setUserRole(UserRole.EMPLOYEE);
+      }
+
+      // Load profile picture
+      const userId = TokenStorage.getUserId();
+      if (userId) {
+        try {
+          const profile = await UserService.loadProfile(userId);
+          setProfilePictureUrl(profile.profilePictureUrl || null);
+          console.log('📷 Loaded profile picture URL:', profile.profilePictureUrl);
+        } catch (err) {
+          console.error('Failed to load profile picture:', err);
+        }
       }
     }
   };
@@ -167,7 +181,20 @@ export const HomeScreen: React.FC = () => {
       <div className={`${styles.drawer} ${drawerOpen ? styles.open : ''}`}>
         <div className={styles.drawerHeader}>
           <div className={styles.avatar}>
-            <span>👤</span>
+            {profilePictureUrl ? (
+              <img
+                src={`http://talentlink.local${profilePictureUrl}`}
+                alt="Profile"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                onError={(e) => {
+                  console.error('❌ Failed to load drawer profile picture:', profilePictureUrl);
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).parentElement!.innerHTML = '<span>👤</span>';
+                }}
+              />
+            ) : (
+              <span>👤</span>
+            )}
           </div>
           <div className={styles.username}>{username}</div>
           {userRole && (

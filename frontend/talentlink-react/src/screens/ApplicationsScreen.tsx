@@ -150,12 +150,33 @@ const ApplicationsScreen: React.FC = () => {
                     <div key={app.application_id} className={styles.applicationCard}>
                       <div className={styles.applicationHeader}>
                         <span className={styles.employeeId}>
-                          Employee ID: {app.employee_id}
+                          {app.employee_profile?.username || `Employee ID: ${app.employee_id}`}
                         </span>
                         <span className={`${styles.statusBadge} ${getStatusBadgeClass(app.status)}`}>
                           {app.status}
                         </span>
                       </div>
+
+                      {/* Employee Profile Information */}
+                      {app.employee_profile && (
+                        <div className={styles.employeeProfile}>
+                          {app.employee_profile.email && (
+                            <div className={styles.profileItem}>
+                              <strong>📧 Email:</strong> {app.employee_profile.email}
+                            </div>
+                          )}
+                          {app.employee_profile.phone && (
+                            <div className={styles.profileItem}>
+                              <strong>📱 Phone:</strong> {app.employee_profile.phone}
+                            </div>
+                          )}
+                          {app.employee_profile.description && (
+                            <div className={styles.profileItem}>
+                              <strong>ℹ️ About:</strong> {app.employee_profile.description}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       <div className={styles.applicationDetails}>
                         <div>

@@ -53,8 +53,13 @@ export const ProfileScreen: React.FC = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log('📷 handleImageSelect called, file:', file.name);
+
     const userId = TokenStorage.getUserId();
-    if (!userId) return;
+    if (!userId) {
+      console.error('❌ No userId found for image upload');
+      return;
+    }
 
     setIsSaving(true);
     setError(null);
@@ -64,13 +69,20 @@ export const ProfileScreen: React.FC = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64String = (reader.result as string).split(',')[1];
+        console.log('📷 Base64 conversion complete, length:', base64String.length);
 
         try {
+          console.log('📷 Calling UserService.uploadProfilePicture...');
           const url = await UserService.uploadProfilePicture(userId, base64String);
+          console.log('✅ Profile picture uploaded, URL:', url);
+
+          // Update profile state
           setProfile((prev) => (prev ? { ...prev, profilePictureUrl: url } : prev));
+
           setSuccess('Profile picture updated!');
           setTimeout(() => setSuccess(null), 3000);
         } catch (e: any) {
+          console.error('❌ Error uploading profile picture:', e);
           setError(e.message);
         } finally {
           setIsSaving(false);
@@ -78,33 +90,52 @@ export const ProfileScreen: React.FC = () => {
       };
       reader.readAsDataURL(file);
     } catch (e: any) {
+      console.error('❌ Error reading file:', e);
       setError(e.message);
       setIsSaving(false);
     }
   };
 
   const handleSaveProfile = async () => {
+    console.log('🔵 handleSaveProfile called');
+
     const userId = TokenStorage.getUserId();
-    if (!userId) return;
+    if (!userId) {
+      console.error('❌ No userId found');
+      return;
+    }
+
+    console.log('🔵 User ID:', userId);
+    console.log('🔵 Profile data to save:', {
+      description,
+      phoneNumber,
+      secondaryEmail,
+      address,
+    });
 
     setIsSaving(true);
     setError(null);
 
     try {
+      console.log('🔵 Calling UserService.updateProfile...');
       const updatedProfile = await UserService.updateProfile(userId, {
         description,
         phoneNumber,
         secondaryEmail,
         address,
       });
+      console.log('✅ Profile updated successfully:', updatedProfile);
       setProfile(updatedProfile);
       setIsEditing(false);
       setSuccess('Profile updated successfully!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (e: any) {
+      console.error('❌ Error updating profile:', e);
+      console.error('❌ Error message:', e.message);
       setError(e.message);
     } finally {
       setIsSaving(false);
+      console.log('🔵 handleSaveProfile finished');
     }
   };
 
@@ -172,9 +203,16 @@ export const ProfileScreen: React.FC = () => {
               <div className={styles.avatar}>
                 {profile.profilePictureUrl ? (
                   <img
-                    src={profile.profilePictureUrl}
+                    src={`http://talentlink.local${profile.profilePictureUrl}`}
                     alt="Profile"
                     className={styles.avatarImage}
+                    onError={(e) => {
+                      console.error('❌ Failed to load profile picture:', profile.profilePictureUrl);
+                      console.log('📷 Current profile state:', profile);
+                    }}
+                    onLoad={() => {
+                      console.log('✅ Profile picture loaded successfully:', profile.profilePictureUrl);
+                    }}
                   />
                 ) : (
                   <span className={styles.avatarPlaceholder}>👤</span>

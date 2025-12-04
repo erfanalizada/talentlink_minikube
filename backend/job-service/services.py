@@ -4,6 +4,7 @@ Single Responsibility: Handles business logic and validation.
 """
 import os
 import base64
+import requests
 from typing import List, Optional, Dict
 from models import Job, JobApplication, ApplicationStatus
 from repositories import IJobRepository, IJobApplicationRepository
@@ -49,6 +50,26 @@ class JobService:
     def get_jobs_by_employer(self, employer_id: str) -> List[Job]:
         """Get all jobs posted by a specific employer."""
         return self.repository.get_by_employer(employer_id)
+
+    def get_all_jobs_with_application_status(self, employee_id: str) -> List[Dict]:
+        """Get all jobs with application status for a specific employee."""
+        from repositories import JobApplicationRepository
+
+        jobs = self.repository.get_all()
+        app_repo = JobApplicationRepository(self.repository.db)
+        employee_applications = app_repo.get_by_employee(employee_id)
+
+        # Create a set of job IDs the employee has applied to
+        applied_job_ids = {app.job_id for app in employee_applications}
+
+        # Add has_applied flag to each job
+        jobs_with_status = []
+        for job in jobs:
+            job_dict = job.to_dict()
+            job_dict["has_applied"] = job.job_id in applied_job_ids
+            jobs_with_status.append(job_dict)
+
+        return jobs_with_status
 
     def update_job(self, job_id: int, employer_id: str, title: Optional[str] = None,
                    description: Optional[str] = None, salary: Optional[float] = None,
@@ -97,6 +118,22 @@ class JobApplicationService:
     def __init__(self, repository: IJobApplicationRepository, job_repository: IJobRepository):
         self.repository = repository
         self.job_repository = job_repository
+        self.user_service_url = os.getenv("USER_SERVICE_URL", "http://user-service:5000")
+
+    def _fetch_user_profile(self, user_id: str) -> Optional[Dict]:
+        """Fetch user profile from user-service."""
+        try:
+            response = requests.get(
+                f"{self.user_service_url}/api/users/profile/{user_id}",
+                timeout=5
+            )
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("profile")
+            return None
+        except Exception as e:
+            print(f"⚠️ Warning: Could not fetch user profile for {user_id}: {e}")
+            return None
 
     def create_application(self, job_id: int, employee_id: str,
                           cv_base64: Optional[str] = None, portfolio_url: Optional[str] = None,
@@ -120,12 +157,20 @@ class JobApplicationService:
                 raise ValueError("cv is required")
             cv_url = self._save_cv(employee_id, job_id, cv_base64)
 
+        # Fetch user profile from user-service
+        user_profile = self._fetch_user_profile(employee_id)
+
+        # Create application with profile data
         application = JobApplication(
             job_id=job_id,
             employee_id=employee_id,
             cv_url=cv_url,
             portfolio_url=portfolio_url if portfolio_url else None,
-            status=ApplicationStatus.PENDING
+            status=ApplicationStatus.PENDING,
+            employee_username=user_profile.get("username") if user_profile else None,
+            employee_email=user_profile.get("email") if user_profile else None,
+            employee_phone=user_profile.get("phone_number") if user_profile else None,
+            employee_description=user_profile.get("description") if user_profile else None
         )
         return self.repository.create(application)
 

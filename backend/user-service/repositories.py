@@ -75,16 +75,43 @@ class UserProfileRepository(IUserProfileRepository):
         """Update user profile with provided fields."""
         profile = self.get_by_id(user_id)
         if not profile:
+            print(f"⚠️ Profile not found for user_id: {user_id}")
             return None
 
-        # Update only provided fields
-        for key, value in kwargs.items():
-            if hasattr(profile, key) and value is not None:
-                setattr(profile, key, value)
+        print(f"📝 Updating profile {user_id} with: {kwargs}")
 
-        self.db.commit()
-        self.db.refresh(profile)
-        return profile
+        # Update only provided fields (allow empty strings and None)
+        updated_fields = []
+        for key, value in kwargs.items():
+            if hasattr(profile, key):
+                old_value = getattr(profile, key)
+                setattr(profile, key, value)
+                updated_fields.append(f"{key}: {old_value} -> {value}")
+                print(f"  ✓ Set {key} = {value}")
+
+        try:
+            self.db.commit()
+            print(f"✅ Committed changes to database")
+            self.db.refresh(profile)
+            print(f"✅ Refreshed profile from database")
+
+            # Verify the changes were saved
+            verification = self.get_by_id(user_id)
+            if verification:
+                for key in kwargs.keys():
+                    if hasattr(verification, key):
+                        saved_value = getattr(verification, key)
+                        expected_value = kwargs[key]
+                        if saved_value == expected_value:
+                            print(f"  ✓ Verified {key} = {saved_value}")
+                        else:
+                            print(f"  ⚠️ Mismatch {key}: expected {expected_value}, got {saved_value}")
+
+            return profile
+        except Exception as e:
+            print(f"❌ Error during commit: {e}")
+            self.db.rollback()
+            raise
 
     def delete(self, user_id: str) -> bool:
         """Delete user profile."""

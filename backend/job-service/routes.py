@@ -59,28 +59,56 @@ def create_job():
 
 @jobs_bp.route("/api/jobs", methods=["GET"])
 def get_all_jobs():
-    """Get all job postings (Public)."""
+    """
+    Get all job postings (Public).
+    Optional query parameter: employee_id - if provided, includes has_applied flag
+    """
     try:
+        employee_id = request.args.get("employee_id")
+
         service, db = get_job_service()
         try:
-            jobs = service.get_all_jobs()
-            return jsonify([job.to_dict() for job in jobs]), 200
+            if employee_id:
+                # Return jobs with application status for employee
+                jobs_with_status = service.get_all_jobs_with_application_status(employee_id)
+                return jsonify(jobs_with_status), 200
+            else:
+                # Return all jobs without application status
+                jobs = service.get_all_jobs()
+                return jsonify([job.to_dict() for job in jobs]), 200
         finally:
             db.close()
     except Exception as e:
+        current_app.logger.error(f"Failed to fetch jobs: {e}")
         return jsonify({"error": f"Failed to fetch jobs: {str(e)}"}), 500
 
 
 @jobs_bp.route("/api/jobs/<int:job_id>", methods=["GET"])
 def get_job(job_id):
-    """Get a specific job by ID."""
+    """
+    Get a specific job by ID.
+    Optional query parameter: employee_id - if provided, includes has_applied flag
+    """
     try:
+        employee_id = request.args.get("employee_id")
+
         service, db = get_job_service()
         try:
             job = service.get_job(job_id)
             if not job:
                 return jsonify({"error": "Job not found"}), 404
-            return jsonify(job.to_dict()), 200
+
+            job_dict = job.to_dict()
+
+            # Add has_applied flag if employee_id is provided
+            if employee_id:
+                from repositories import JobApplicationRepository
+                app_repo = JobApplicationRepository(db)
+                employee_applications = app_repo.get_by_employee(employee_id)
+                applied_job_ids = {app.job_id for app in employee_applications}
+                job_dict["has_applied"] = job_id in applied_job_ids
+
+            return jsonify(job_dict), 200
         finally:
             db.close()
     except Exception as e:
@@ -109,7 +137,10 @@ def update_job(job_id):
         employer_id = data.get("employer_id")
 
         if not employer_id:
+            current_app.logger.warning(f"Update job {job_id} failed: employer_id missing")
             return jsonify({"error": "employer_id is required"}), 400
+
+        current_app.logger.info(f"Updating job {job_id} by employer {employer_id}")
 
         service, db = get_job_service()
         try:
@@ -122,16 +153,24 @@ def update_job(job_id):
                 skills=data.get("skills")
             )
             if not job:
+                current_app.logger.warning(f"Job {job_id} not found for update")
                 return jsonify({"error": "Job not found"}), 404
+
+            current_app.logger.info(f"✅ Job {job_id} updated successfully")
             return jsonify(job.to_dict()), 200
         finally:
             db.close()
 
     except PermissionError as e:
+        current_app.logger.warning(f"Permission denied updating job {job_id}: {e}")
         return jsonify({"error": str(e)}), 403
     except ValueError as e:
+        current_app.logger.warning(f"Validation error updating job {job_id}: {e}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
+        current_app.logger.error(f"❌ Failed to update job {job_id}: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": f"Failed to update job: {str(e)}"}), 500
 
 
@@ -139,24 +178,34 @@ def update_job(job_id):
 def delete_job(job_id):
     """Delete a job posting (Owner only)."""
     try:
-        data = request.get_json()
+        data = request.get_json() if request.data else {}
         employer_id = data.get("employer_id")
 
         if not employer_id:
+            current_app.logger.warning(f"Delete job {job_id} failed: employer_id missing")
             return jsonify({"error": "employer_id is required"}), 400
+
+        current_app.logger.info(f"Deleting job {job_id} by employer {employer_id}")
 
         service, db = get_job_service()
         try:
             success = service.delete_job(job_id, employer_id)
             if not success:
+                current_app.logger.warning(f"Job {job_id} not found for deletion")
                 return jsonify({"error": "Job not found"}), 404
+
+            current_app.logger.info(f"✅ Job {job_id} deleted successfully")
             return jsonify({"message": "Job deleted successfully"}), 200
         finally:
             db.close()
 
     except PermissionError as e:
+        current_app.logger.warning(f"Permission denied deleting job {job_id}: {e}")
         return jsonify({"error": str(e)}), 403
     except Exception as e:
+        current_app.logger.error(f"❌ Failed to delete job {job_id}: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": f"Failed to delete job: {str(e)}"}), 500
 
 

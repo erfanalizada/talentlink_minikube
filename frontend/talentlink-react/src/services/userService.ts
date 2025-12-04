@@ -78,21 +78,34 @@ export class UserService {
     updates: Partial<UserProfile>
   ): Promise<UserProfile> {
     try {
+      console.log('🌐 UserService.updateProfile called');
+      console.log('🌐 URL:', `${BASE_URL}/profile/${userId}`);
+      console.log('🌐 Updates:', updates);
+
       const token = TokenStorage.getAccessToken();
+      console.log('🌐 Token exists:', !!token);
+
+      const requestBody = {
+        description: updates.description,
+        phone_number: updates.phoneNumber,
+        secondary_email: updates.secondaryEmail,
+        address: updates.address,
+      };
+      console.log('🌐 Request body:', requestBody);
+
       const response = await axios.put<any>(
         `${BASE_URL}/profile/${userId}`,
-        {
-          description: updates.description,
-          phone_number: updates.phoneNumber,
-          secondary_email: updates.secondaryEmail,
-          address: updates.address,
-        },
+        requestBody,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         }
       );
+
+      console.log('🌐 Response status:', response.status);
+      console.log('🌐 Response data:', response.data);
 
       return {
         userId: response.data.user_id,
@@ -108,25 +121,41 @@ export class UserService {
         updatedAt: response.data.updated_at,
       };
     } catch (error: any) {
+      console.error('🌐 API Error:', error);
+      console.error('🌐 Error response:', error.response?.data);
+      console.error('🌐 Error status:', error.response?.status);
       throw new Error(error.response?.data?.error || 'Failed to update profile');
     }
   }
 
   static async uploadProfilePicture(userId: string, base64Image: string): Promise<string> {
     try {
+      console.log('📷 UserService.uploadProfilePicture called');
+      console.log('📷 URL:', `${BASE_URL}/profile/${userId}/picture`);
+      console.log('📷 Base64 image length:', base64Image.length);
+
       const token = TokenStorage.getAccessToken();
+      console.log('📷 Token exists:', !!token);
+
       const response = await axios.post<{ profile_picture_url: string }>(
         `${BASE_URL}/profile/${userId}/picture`,
         { image: base64Image },
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         }
       );
 
+      console.log('📷 Response status:', response.status);
+      console.log('📷 Response data:', response.data);
+      console.log('📷 Profile picture URL:', response.data.profile_picture_url);
+
       return response.data.profile_picture_url;
     } catch (error: any) {
+      console.error('📷 Upload error:', error);
+      console.error('📷 Error response:', error.response?.data);
       throw new Error(error.response?.data?.error || 'Failed to upload profile picture');
     }
   }
