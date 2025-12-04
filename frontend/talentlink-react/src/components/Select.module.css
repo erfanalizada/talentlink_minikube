@@ -1,0 +1,52 @@
+.selectGroup {
+  margin-bottom: 16px;
+}
+
+.selectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select {
+  width: 100%;
+  padding: 16px 16px 16px 48px;
+  font-size: 15px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: #0F172A;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  appearance: none;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #2563EB;
+  border-width: 2px;
+  padding: 15px 15px 15px 47px;
+}
+
+.icon {
+  position: absolute;
+  left: 16px;
+  color: #64748B;
+  font-size: 20px;
+  pointer-events: none;
+}
+
+.arrow {
+  position: absolute;
+  right: 16px;
+  color: #64748B;
+  pointer-events: none;
+}
+
+.label {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: #64748B;
+  margin-bottom: 8px;
+}
