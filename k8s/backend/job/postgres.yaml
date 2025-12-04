@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jobdb-postgres-pvc
+  namespace: talentlink-local
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobdb-postgres
+  namespace: talentlink-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jobdb-postgres
+  template:
+    metadata:
+      labels:
+        app: jobdb-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          env:
+            - name: POSTGRES_DB
+              value: jobdb
+            - name: POSTGRES_USER
+              value: jobservice
+            - name: POSTGRES_PASSWORD
+              value: jobservice123
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: data
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - jobservice
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - jobservice
+            initialDelaySeconds: 10
+            periodSeconds: 20
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: jobdb-postgres-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jobdb-postgres
+  namespace: talentlink-local
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: jobdb-postgres

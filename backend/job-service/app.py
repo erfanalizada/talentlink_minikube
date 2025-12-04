@@ -1,17 +1,21 @@
-from flask import Flask, jsonify
+"""
+Job Service - Main application entry point.
+Handles job postings and applications.
+"""
+from flask import Flask
+from flask_cors import CORS
+from database import init_db
+from routes import jobs_bp
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for frontend communication
 
-@app.route("/api/jobs")
-def list_jobs():
-    return jsonify([
-        {"id": 1, "title": "Internship (hardcoded)"},
-        {"id": 2, "title": "Software Engineer (hardcoded)"}
-    ])
+# Register blueprints
+app.register_blueprint(jobs_bp)
 
-@app.route("/api/jobs/health")
-def health():
-    return {"status": "job-service ok"}
+# Initialize database on startup
+with app.app_context():
+    init_db()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -26,6 +26,13 @@ spec:
           env:
             - name: ENVIRONMENT
               value: local
+            - name: DATABASE_URL
+              value: "postgresql://jobservice:jobservice123@jobdb-postgres:5432/jobdb"
+            - name: UPLOAD_DIR
+              value: "/app/uploads"
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
           readinessProbe:
             httpGet:
               path: /api/jobs/health
@@ -38,3 +45,6 @@ spec:
               port: 5000
             initialDelaySeconds: 10
             periodSeconds: 20
+      volumes:
+        - name: uploads
+          emptyDir: {}

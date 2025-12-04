@@ -7,7 +7,9 @@
       "Bash(kubectl logs:*)",
       "Bash(kubectl get:*)",
       "Bash(flutter pub get:*)",
-      "Bash(flutter clean:*)"
+      "Bash(flutter clean:*)",
+      "Bash(kubectl apply:*)",
+      "Bash(kubectl wait:*)"
     ],
     "deny": [],
     "ask": []

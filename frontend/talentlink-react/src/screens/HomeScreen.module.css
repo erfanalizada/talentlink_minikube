@@ -38,11 +38,10 @@
 }
 
 .content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: calc(100vh - 64px);
   padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .comingSoon {
@@ -145,6 +144,15 @@
   font-weight: 600;
 }
 
+.roleBadge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-top: 8px;
+  display: inline-block;
+}
+
 .drawerMenu {
   flex: 1;
   padding: 0;
@@ -188,4 +196,227 @@
 
 .logoutIcon {
   color: #EF4444;
+}
+
+/* Jobs Section */
+.jobsSection {
+  margin-top: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  color: #0F172A;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #64748B;
+  font-size: 1.125rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+}
+
+.empty p {
+  color: #64748B;
+  margin-bottom: 1.5rem;
+}
+
+.jobsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.jobCard {
+  padding: 1.5rem;
+}
+
+.jobHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.jobHeader h3 {
+  margin: 0;
+  color: #0F172A;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.salary {
+  background: #10B981;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.jobDescription {
+  color: #64748B;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.skillsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.skillBadge {
+  background: #EEF2FF;
+  color: #2563EB;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.jobFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F1F5F9;
+}
+
+.postedDate {
+  color: #94A3B8;
+  font-size: 0.875rem;
+}
+
+/* Application Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #0F172A;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.closeButton:hover {
+  color: #0F172A;
+}
+
+.modalForm {
+  padding: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #0F172A;
+  font-weight: 500;
+}
+
+.fileInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px dashed #CBD5E1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.fileInput:hover {
+  border-color: #2563EB;
+}
+
+.fileName {
+  display: block;
+  margin-top: 0.5rem;
+  color: #10B981;
+  font-size: 0.875rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.error {
+  background-color: #FEE2E2;
+  color: #DC2626;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid #FECACA;
 }

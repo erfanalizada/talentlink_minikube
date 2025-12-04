@@ -1,21 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TokenStorage } from '../services/tokenStorage';
+import { JobService } from '../services/jobService';
+import { Job } from '../types/job';
+import { UserRole } from '../types/user';
+import { Card } from '../components/Card';
+import { Button } from '../components/Button';
 import styles from './HomeScreen.module.css';
 
 export const HomeScreen: React.FC = () => {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [username, setUsername] = useState<string>('Loading...');
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   useEffect(() => {
     loadUserInfo();
+    loadJobs();
   }, []);
 
   const loadUserInfo = () => {
     const decodedToken = TokenStorage.getDecodedToken();
     if (decodedToken) {
       setUsername(decodedToken.preferred_username || 'User');
+
+      // Get user role from token
+      const roles = decodedToken.realm_access?.roles || [];
+      if (roles.includes('employer')) {
+        setUserRole(UserRole.EMPLOYER);
+      } else if (roles.includes('employee')) {
+        setUserRole(UserRole.EMPLOYEE);
+      }
+    }
+  };
+
+  const loadJobs = async () => {
+    try {
+      setLoading(true);
+      const allJobs = await JobService.getAllJobs();
+      setJobs(allJobs);
+    } catch (err) {
+      console.error('Failed to load jobs', err);
+      // Set empty array on error so UI shows "no jobs" instead of error
+      setJobs([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -30,6 +63,11 @@ export const HomeScreen: React.FC = () => {
     if (userId) {
       navigate('/profile');
     }
+  };
+
+  const handleApplyClick = (job: Job) => {
+    setSelectedJob(job);
+    setShowApplicationModal(true);
   };
 
   const closeDrawer = () => {
@@ -50,18 +88,74 @@ export const HomeScreen: React.FC = () => {
 
       {/* Main Content */}
       <div className={styles.content}>
-        <div className={styles.comingSoon}>
-          <div className={styles.iconContainer}>
-            <span className={styles.icon}>⏳</span>
-          </div>
-          <h2 className={styles.comingSoonTitle}>Coming Soon</h2>
-          <p className={styles.comingSoonSubtitle}>
-            We're working on something amazing.
-            <br />
-            Stay tuned!
-          </p>
+        <div className={styles.jobsSection}>
+          <h2 className={styles.sectionTitle}>
+            {userRole === UserRole.EMPLOYER ? 'All Job Posts' : 'Available Jobs'}
+          </h2>
+
+          {loading ? (
+            <div className={styles.loading}>Loading jobs...</div>
+          ) : jobs.length === 0 ? (
+            <Card>
+              <div className={styles.empty}>
+                <p>No jobs available at the moment.</p>
+                {userRole === UserRole.EMPLOYER && (
+                  <Button onClick={() => navigate('/post-job')}>Post Your First Job</Button>
+                )}
+              </div>
+            </Card>
+          ) : (
+            <div className={styles.jobsList}>
+              {jobs.map((job) => (
+                <Card key={job.job_id}>
+                  <div className={styles.jobCard}>
+                    <div className={styles.jobHeader}>
+                      <h3>{job.title}</h3>
+                      {job.salary && (
+                        <span className={styles.salary}>${job.salary.toLocaleString()}</span>
+                      )}
+                    </div>
+                    <p className={styles.jobDescription}>{job.description}</p>
+                    {job.skills && job.skills.length > 0 && (
+                      <div className={styles.skillsContainer}>
+                        {job.skills.map((skill, index) => (
+                          <span key={index} className={styles.skillBadge}>
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className={styles.jobFooter}>
+                      <span className={styles.postedDate}>
+                        Posted {new Date(job.created_at).toLocaleDateString()}
+                      </span>
+                      {userRole === UserRole.EMPLOYEE && (
+                        <Button onClick={() => handleApplyClick(job)}>Apply Now</Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Application Modal */}
+      {showApplicationModal && selectedJob && (
+        <ApplicationModal
+          job={selectedJob}
+          onClose={() => {
+            setShowApplicationModal(false);
+            setSelectedJob(null);
+          }}
+          onSuccess={() => {
+            setShowApplicationModal(false);
+            setSelectedJob(null);
+            alert('Application submitted successfully!');
+          }}
+        />
+      )}
 
       {/* Drawer Overlay */}
       <div
@@ -76,6 +170,11 @@ export const HomeScreen: React.FC = () => {
             <span>👤</span>
           </div>
           <div className={styles.username}>{username}</div>
+          {userRole && (
+            <div className={styles.roleBadge}>
+              {userRole === UserRole.EMPLOYER ? 'Employer' : 'Employee'}
+            </div>
+          )}
         </div>
 
         <ul className={styles.drawerMenu}>
@@ -91,6 +190,53 @@ export const HomeScreen: React.FC = () => {
               <span>Profile</span>
             </button>
           </li>
+
+          {/* Employer-specific menu items */}
+          {userRole === UserRole.EMPLOYER && (
+            <>
+              <li>
+                <button
+                  className={styles.drawerItem}
+                  onClick={() => {
+                    setDrawerOpen(false);
+                    navigate('/post-job');
+                  }}
+                >
+                  <span className={styles.drawerItemIcon}>📝</span>
+                  <span>Post a Job</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  className={styles.drawerItem}
+                  onClick={() => {
+                    setDrawerOpen(false);
+                    navigate('/applications');
+                  }}
+                >
+                  <span className={styles.drawerItemIcon}>📋</span>
+                  <span>View Applications</span>
+                </button>
+              </li>
+            </>
+          )}
+
+          {/* Employee-specific menu items */}
+          {userRole === UserRole.EMPLOYEE && (
+            <li>
+              <button
+                className={styles.drawerItem}
+                onClick={() => {
+                  setDrawerOpen(false);
+                  navigate('/my-applications');
+                }}
+              >
+                <span className={styles.drawerItemIcon}>📄</span>
+                <span>My Applications</span>
+              </button>
+            </li>
+          )}
+
           <li>
             <div className={styles.drawerDivider} />
           </li>
@@ -104,6 +250,111 @@ export const HomeScreen: React.FC = () => {
             </button>
           </li>
         </ul>
+      </div>
+    </div>
+  );
+};
+
+// Application Modal Component
+interface ApplicationModalProps {
+  job: Job;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const ApplicationModal: React.FC<ApplicationModalProps> = ({ job, onClose, onSuccess }) => {
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleCvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setCvFile(e.target.files[0]);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!cvFile) {
+      setError('Please upload your CV');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userId = TokenStorage.getUserId();
+      if (!userId) {
+        setError('User not authenticated');
+        return;
+      }
+
+      // Convert CV to base64
+      const cvBase64 = await JobService.fileToBase64(cvFile);
+
+      await JobService.applyToJob(job.job_id, {
+        employee_id: userId,
+        cv: cvBase64,
+        portfolio_url: portfolioUrl || undefined,
+      });
+
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit application');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h2>Apply to {job.title}</h2>
+          <button className={styles.closeButton} onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className={styles.modalForm}>
+          {error && <div className={styles.error}>{error}</div>}
+
+          <div className={styles.formGroup}>
+            <label htmlFor="cv">Upload CV (Required) *</label>
+            <input
+              type="file"
+              id="cv"
+              accept=".pdf,.doc,.docx"
+              onChange={handleCvChange}
+              className={styles.fileInput}
+              required
+            />
+            {cvFile && <span className={styles.fileName}>{cvFile.name}</span>}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="portfolio">Portfolio URL (Optional)</label>
+            <input
+              type="url"
+              id="portfolio"
+              value={portfolioUrl}
+              onChange={(e) => setPortfolioUrl(e.target.value)}
+              placeholder="https://your-portfolio.com"
+              className={styles.input}
+            />
+          </div>
+
+          <div className={styles.modalActions}>
+            <Button type="button" variant="outlined" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={loading}>
+              Submit Application
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
