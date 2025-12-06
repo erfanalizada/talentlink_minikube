@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observability & Monitoring Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin: -20px -20px 40px -20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .toc h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc ul li {
+            margin: 8px 0;
+        }
+
+        .toc ul li a {
+            color: #555;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc ul li a:hover {
+            color: #667eea;
+        }
+
+        section {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 5px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .file-structure {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .file-structure .folder {
+            color: #61afef;
+        }
+
+        .file-structure .file {
+            color: #98c379;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #abb2bf;
+        }
+
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+        .function { color: #61afef; }
+        .class-name { color: #e5c07b; }
+
+        .flow-diagram {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flow-box {
+            background: #667eea;
+            color: white;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .flow-box.prometheus {
+            background: #e74c3c;
+        }
+
+        .flow-box.grafana {
+            background: #f39c12;
+        }
+
+        .flow-box.jaeger {
+            background: #3498db;
+        }
+
+        .flow-box.service {
+            background: #2ecc71;
+        }
+
+        .flow-arrow {
+            font-size: 2em;
+            color: #999;
+            margin: 10px 0;
+        }
+
+        .responsibility-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .responsibility-card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .responsibility-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .responsibility-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .responsibility-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tool-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .tool-card.prometheus {
+            border-color: #e74c3c;
+        }
+
+        .tool-card.grafana {
+            border-color: #f39c12;
+        }
+
+        .tool-card.jaeger {
+            border-color: #3498db;
+        }
+
+        .tool-card h3 {
+            margin-top: 0;
+        }
+
+        .tool-card.prometheus h3 {
+            color: #e74c3c;
+        }
+
+        .tool-card.grafana h3 {
+            color: #f39c12;
+        }
+
+        .tool-card.jaeger h3 {
+            color: #3498db;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 40px -20px -20px -20px;
+        }
+
+        .pdf-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .pdf-button:hover {
+            background: #218838;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .pdf-button:active {
+            transform: translateY(1px);
+        }
+
+        @media print {
+            .pdf-button {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+                box-shadow: none;
+                padding: 0;
+            }
+
+            header {
+                margin: 0;
+                page-break-after: avoid;
+            }
+
+            section {
+                page-break-inside: avoid;
+            }
+
+            h2, h3, h4 {
+                page-break-after: avoid;
+            }
+
+            pre, .file-structure {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="content-to-pdf">
+        <header>
+            <h1>Observability & Monitoring Documentation</h1>
+            <p>Prometheus, Grafana & Jaeger Implementation in TalentLink CQRS Services</p>
+            <button class="pdf-button" onclick="exportToPDF()">📄 Export as PDF</button>
+        </header>
+
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#introduction">1. Introduction to Observability</a></li>
+                <li><a href="#overview">2. Three Pillars of Observability</a></li>
+                <li><a href="#prometheus">3. Prometheus - Metrics Collection</a></li>
+                <li><a href="#grafana">4. Grafana - Metrics Visualization</a></li>
+                <li><a href="#jaeger">5. Jaeger - Distributed Tracing</a></li>
+                <li><a href="#architecture">6. Architecture & Deployment</a></li>
+                <li><a href="#implementation">7. Code Implementation</a></li>
+                <li><a href="#integration">8. Integration with CQRS Services</a></li>
+                <li><a href="#usage">9. How to Use the Monitoring Stack</a></li>
+                <li><a href="#benefits">10. Benefits & Best Practices</a></li>
+            </ul>
+        </nav>
+
+        <section id="introduction">
+            <h2>1. Introduction to Observability</h2>
+
+            <p>
+                <strong>Observability</strong> is the ability to understand the internal state of a system by examining its external outputs. In modern microservices architectures like TalentLink, observability is critical for debugging, performance optimization, and maintaining system health.
+            </p>
+
+            <div class="info-box">
+                <h4>Why Observability Matters</h4>
+                <p>
+                    With CQRS implementation in our User and Job services, we need visibility into:
+                </p>
+                <ul>
+                    <li>How long commands and queries take to execute</li>
+                    <li>Which endpoints are being called most frequently</li>
+                    <li>How requests flow through the system (commands → handlers → services → database)</li>
+                    <li>Where bottlenecks and errors occur in the request lifecycle</li>
+                </ul>
+            </div>
+
+            <p>
+                TalentLink implements a complete observability stack using three industry-standard tools: <strong>Prometheus</strong> for metrics collection, <strong>Grafana</strong> for visualization, and <strong>Jaeger</strong> for distributed tracing.
+            </p>
+        </section>
+
+        <section id="overview">
+            <h2>2. Three Pillars of Observability</h2>
+
+            <p>
+                Modern observability is built on three fundamental pillars, each providing different insights into system behavior:
+            </p>
+
+            <div class="grid-3">
+                <div class="tool-card prometheus">
+                    <h3>📊 Metrics</h3>
+                    <p><strong>Tool: Prometheus</strong></p>
+                    <ul>
+                        <li>Numerical measurements over time</li>
+                        <li>CPU, memory, request counts</li>
+                        <li>Response times, error rates</li>
+                        <li>Aggregated statistical data</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card grafana">
+                    <h3>📈 Visualization</h3>
+                    <p><strong>Tool: Grafana</strong></p>
+                    <ul>
+                        <li>Dashboards and graphs</li>
+                        <li>Real-time monitoring</li>
+                        <li>Historical trend analysis</li>
+                        <li>Alerting and notifications</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card jaeger">
+                    <h3>🔍 Traces</h3>
+                    <p><strong>Tool: Jaeger</strong></p>
+                    <ul>
+                        <li>Request flow tracking</li>
+                        <li>Service dependencies</li>
+                        <li>Performance bottlenecks</li>
+                        <li>Error propagation paths</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <h4>Together They Provide Complete Visibility</h4>
+                <p>
+                    <strong>Metrics</strong> tell you <em>what</em> is happening (e.g., "requests are slow")<br>
+                    <strong>Traces</strong> tell you <em>where</em> it's happening (e.g., "database queries in the command handler")<br>
+                    <strong>Visualization</strong> helps you <em>understand</em> and <em>act</em> on the data
+                </p>
+            </div>
+        </section>
+
+        <section id="prometheus">
+            <h2>3. Prometheus - Metrics Collection</h2>
+
+            <div class="tool-card prometheus">
+                <h3>What is Prometheus?</h3>
+                <p>
+                    Prometheus is an open-source monitoring and alerting toolkit designed for reliability and scalability. It collects and stores metrics as time-series data, recording information with timestamps.
+                </p>
+            </div>
+
+            <h3>Purpose in TalentLink</h3>
+
+            <div class="responsibility-card">
+                <h4>Key Responsibilities</h4>
+                <ul class="responsibility-list">
+                    <li>Scrape metrics from user-service and job-service endpoints</li>
+                    <li>Store time-series data about HTTP requests, response times, and errors</li>
+                    <li>Monitor system health (CPU, memory, pod status)</li>
+                    <li>Provide a query language (PromQL) for data analysis</li>
+                    <li>Enable alerting based on metric thresholds</li>
+                </ul>
+            </div>
+
+            <h3>Metrics Collected</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric Type</th>
+                        <th>Example</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Request Count</td>
+                        <td>flask_http_request_total</td>
+                        <td>Total number of HTTP requests per endpoint</td>
+                    </tr>
+                    <tr>
+                        <td>Request Duration</td>
+                        <td>flask_http_request_duration_seconds</td>
+                        <td>Time taken to process requests</td>
+                    </tr>
+                    <tr>
+                        <td>Error Rate</td>
+                        <td>flask_http_request_exceptions_total</td>
+                        <td>Number of failed requests</td>
+                    </tr>
+                    <tr>
+                        <td>Service Info</td>
+                        <td>user_service_info, job_service_info</td>
+                        <td>Service metadata and version</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Deployment in TalentLink</h3>
+
+            <div class="file-structure">
+<span class="folder">k8s/monitoring/</span>
+├── <span class="file">prometheus-rbac.yaml</span>         <span class="comment"># RBAC permissions for Prometheus</span>
+├── <span class="file">prometheus-config.yaml</span>      <span class="comment"># Scrape configuration</span>
+├── <span class="file">prometheus-deployment.yaml</span>  <span class="comment"># Deployment & Service</span>
+└── <span class="file">prometheus-ingress.yaml</span>     <span class="comment"># Ingress for web UI</span>
+            </div>
+
+            <div class="success-box">
+                <h4>Access Prometheus</h4>
+                <p>URL: <code>http://prometheus.local</code></p>
+                <p>Prometheus automatically discovers and scrapes metrics from pods annotated with <code>prometheus.io/scrape: "true"</code></p>
+            </div>
+        </section>
+
+        <section id="grafana">
+            <h2>4. Grafana - Metrics Visualization</h2>
+
+            <div class="tool-card grafana">
+                <h3>What is Grafana?</h3>
+                <p>
+                    Grafana is an open-source analytics and visualization platform. It transforms raw metrics from Prometheus into beautiful, interactive dashboards that help teams understand system behavior at a glance.
+                </p>
+            </div>
+
+            <h3>Purpose in TalentLink</h3>
+
+            <div class="responsibility-card">
+                <h4>Key Responsibilities</h4>
+                <ul class="responsibility-list">
+                    <li>Visualize metrics from Prometheus in real-time dashboards</li>
+                    <li>Create graphs, charts, and heatmaps of CQRS operation performance</li>
+                    <li>Monitor trends over time (hourly, daily, weekly)</li>
+                    <li>Set up alerts for anomalies (high error rates, slow responses)</li>
+                    <li>Provide insights into command vs query performance</li>
+                </ul>
+            </div>
+
+            <h3>Example Dashboards</h3>
+
+            <div class="grid-2">
+                <div class="success-box">
+                    <h4>User Service Dashboard</h4>
+                    <ul>
+                        <li>CreateUserProfileCommand execution time</li>
+                        <li>GetUserProfileByIdQuery throughput</li>
+                        <li>Profile picture upload success rate</li>
+                        <li>Database query latency</li>
+                    </ul>
+                </div>
+
+                <div class="success-box">
+                    <h4>Job Service Dashboard</h4>
+                    <ul>
+                        <li>Job posting command performance</li>
+                        <li>Application query response times</li>
+                        <li>CQRS handler execution metrics</li>
+                        <li>Service health indicators</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Deployment in TalentLink</h3>
+
+            <div class="file-structure">
+<span class="folder">k8s/monitoring/grafana/</span>
+├── <span class="file">datasource.yaml</span>    <span class="comment"># Prometheus as data source</span>
+├── <span class="file">deployment.yaml</span>    <span class="comment"># Grafana deployment</span>
+├── <span class="file">service.yaml</span>       <span class="comment"># Grafana service</span>
+└── <span class="file">ingress.yaml</span>       <span class="comment"># Ingress for web UI</span>
+            </div>
+
+            <div class="success-box">
+                <h4>Access Grafana</h4>
+                <p>URL: <code>http://grafana.local</code></p>
+                <p>Default credentials: <code>admin / admin</code> (change on first login)</p>
+                <p>Prometheus is pre-configured as the default data source</p>
+            </div>
+        </section>
+
+        <section id="jaeger">
+            <h2>5. Jaeger - Distributed Tracing</h2>
+
+            <div class="tool-card jaeger">
+                <h3>What is Jaeger?</h3>
+                <p>
+                    Jaeger is an open-source distributed tracing system. It tracks requests as they flow through multiple services and components, showing exactly where time is spent and where errors occur in complex transactions.
+                </p>
+            </div>
+
+            <h3>Purpose in TalentLink</h3>
+
+            <div class="responsibility-card">
+                <h4>Key Responsibilities</h4>
+                <ul class="responsibility-list">
+                    <li>Trace CQRS command and query execution end-to-end</li>
+                    <li>Track request flow: Route → Command/Query → Handler → Service → Repository → Database</li>
+                    <li>Identify performance bottlenecks in the execution chain</li>
+                    <li>Show SQLAlchemy query execution timing</li>
+                    <li>Visualize service dependencies and call graphs</li>
+                </ul>
+            </div>
+
+            <h3>What Gets Traced?</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Traced Operations</th>
+                        <th>Insights Gained</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Flask Requests</td>
+                        <td>All HTTP endpoints</td>
+                        <td>Total request duration, endpoint performance</td>
+                    </tr>
+                    <tr>
+                        <td>CQRS Handlers</td>
+                        <td>Command/Query execution</td>
+                        <td>Handler processing time, business logic overhead</td>
+                    </tr>
+                    <tr>
+                        <td>Service Layer</td>
+                        <td>Business logic operations</td>
+                        <td>Service method performance</td>
+                    </tr>
+                    <tr>
+                        <td>Database</td>
+                        <td>SQLAlchemy queries</td>
+                        <td>Query execution time, connection overhead</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Trace Visualization</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-box">HTTP POST /api/users/profile</div>
+                <div class="flow-arrow">↓ 2ms</div>
+                <div class="flow-box service">CreateUserProfileCommand</div>
+                <div class="flow-arrow">↓ 5ms</div>
+                <div class="flow-box">UserCommandHandler.handle_create_profile()</div>
+                <div class="flow-arrow">↓ 15ms</div>
+                <div class="flow-box">UserProfileService.create_profile()</div>
+                <div class="flow-arrow">↓ 45ms</div>
+                <div class="flow-box jaeger">PostgreSQL INSERT query</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Total: 67ms</div>
+            </div>
+
+            <h3>Deployment in TalentLink</h3>
+
+            <div class="file-structure">
+<span class="folder">k8s/monitoring/jaeger/</span>
+├── <span class="file">deployment.yaml</span>   <span class="comment"># Jaeger all-in-one deployment</span>
+├── <span class="file">service.yaml</span>      <span class="comment"># Jaeger services (UI, collector, etc.)</span>
+└── <span class="file">ingress.yaml</span>      <span class="comment"># Ingress for web UI</span>
+            </div>
+
+            <div class="success-box">
+                <h4>Access Jaeger</h4>
+                <p>URL: <code>http://jaeger.local</code></p>
+                <p>Search traces by service name (user-service, job-service) and operation</p>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <h2>6. Architecture & Deployment</h2>
+
+            <h3>Kubernetes Deployment Architecture</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-box prometheus">Prometheus Pod</div>
+                <div class="flow-arrow">↓ scrapes /metrics</div>
+                <div class="flow-box service">User Service Pods</div>
+                <div class="flow-box service">Job Service Pods</div>
+                <div class="flow-arrow">↑ query data</div>
+                <div class="flow-box grafana">Grafana Pod</div>
+                <div class="flow-arrow" style="margin-top: 30px;">parallel →</div>
+                <div class="flow-box jaeger">Jaeger Pod</div>
+                <div class="flow-arrow">↑ send traces</div>
+                <div class="flow-box service">User Service Pods</div>
+                <div class="flow-box service">Job Service Pods</div>
+            </div>
+
+            <h3>Monitoring Stack Components</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Namespace</th>
+                        <th>Access URL</th>
+                        <th>Port</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Prometheus</td>
+                        <td>talentlink-local</td>
+                        <td>http://prometheus.local</td>
+                        <td>9090</td>
+                    </tr>
+                    <tr>
+                        <td>Grafana</td>
+                        <td>talentlink-local</td>
+                        <td>http://grafana.local</td>
+                        <td>3000</td>
+                    </tr>
+                    <tr>
+                        <td>Jaeger UI</td>
+                        <td>talentlink-local</td>
+                        <td>http://jaeger.local</td>
+                        <td>16686</td>
+                    </tr>
+                    <tr>
+                        <td>Jaeger Collector</td>
+                        <td>talentlink-local</td>
+                        <td>Internal</td>
+                        <td>14268</td>
+                    </tr>
+                    <tr>
+                        <td>Jaeger Agent</td>
+                        <td>talentlink-local</td>
+                        <td>Internal</td>
+                        <td>6831</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning-box">
+                <h4>Network Configuration</h4>
+                <p>
+                    All monitoring tools are exposed via Ingress with separate subdomains. Make sure to add these entries to your hosts file:
+                </p>
+                <pre><code>127.0.0.1 prometheus.local
+127.0.0.1 grafana.local
+127.0.0.1 jaeger.local</code></pre>
+                <p>Run <code>minikube tunnel</code> to enable Ingress access.</p>
+            </div>
+        </section>
+
+        <section id="implementation">
+            <h2>7. Code Implementation</h2>
+
+            <h3>Dependencies Added</h3>
+
+            <p>Both user-service and job-service have been instrumented with monitoring libraries:</p>
+
+            <pre><code><span class="comment"># Prometheus metrics</span>
+prometheus-flask-exporter==0.23.0
+
+<span class="comment"># OpenTelemetry for distributed tracing</span>
+opentelemetry-api==1.21.0
+opentelemetry-sdk==1.21.0
+opentelemetry-instrumentation-flask==0.42b0
+opentelemetry-instrumentation-sqlalchemy==0.42b0
+opentelemetry-exporter-jaeger==1.21.0</code></pre>
+
+            <h3>User Service Implementation</h3>
+
+            <h4>File: <code>backend/user-service/app.py</code></h4>
+
+            <pre><code><span class="keyword">from</span> prometheus_flask_exporter <span class="keyword">import</span> PrometheusMetrics
+<span class="keyword">from</span> opentelemetry <span class="keyword">import</span> trace
+<span class="keyword">from</span> opentelemetry.sdk.trace <span class="keyword">import</span> TracerProvider
+<span class="keyword">from</span> opentelemetry.sdk.trace.export <span class="keyword">import</span> BatchSpanProcessor
+<span class="keyword">from</span> opentelemetry.exporter.jaeger.thrift <span class="keyword">import</span> JaegerExporter
+<span class="keyword">from</span> opentelemetry.instrumentation.flask <span class="keyword">import</span> FlaskInstrumentor
+<span class="keyword">from</span> opentelemetry.instrumentation.sqlalchemy <span class="keyword">import</span> SQLAlchemyInstrumentor
+
+<span class="keyword">def</span> <span class="function">create_app</span>():
+    app = Flask(__name__)
+
+    <span class="comment"># Initialize Prometheus metrics</span>
+    metrics = PrometheusMetrics(app)
+    metrics.info(<span class="string">'user_service_info'</span>, <span class="string">'User Service with CQRS'</span>, version=<span class="string">'1.0.0'</span>)
+
+    <span class="comment"># Initialize Jaeger tracing</span>
+    jaeger_host = os.getenv(<span class="string">'JAEGER_HOST'</span>, <span class="string">'jaeger'</span>)
+    jaeger_port = <span class="function">int</span>(os.getenv(<span class="string">'JAEGER_PORT'</span>, <span class="string">'6831'</span>))
+
+    resource = Resource.create({<span class="string">"service.name"</span>: <span class="string">"user-service"</span>})
+    trace.set_tracer_provider(TracerProvider(resource=resource))
+
+    jaeger_exporter = JaegerExporter(
+        agent_host_name=jaeger_host,
+        agent_port=jaeger_port,
+    )
+
+    trace.get_tracer_provider().add_span_processor(
+        BatchSpanProcessor(jaeger_exporter)
+    )
+
+    <span class="comment"># Instrument Flask app for automatic tracing</span>
+    FlaskInstrumentor().instrument_app(app)
+
+    <span class="comment"># Register blueprints</span>
+    app.register_blueprint(user_bp)
+
+    <span class="comment"># Initialize database and instrument SQLAlchemy</span>
+    <span class="keyword">with</span> app.app_context():
+        init_db()
+        SQLAlchemyInstrumentor().instrument()
+
+    <span class="keyword">return</span> app</code></pre>
+
+            <div class="info-box">
+                <h4>What This Code Does</h4>
+                <ul>
+                    <li><strong>PrometheusMetrics(app):</strong> Automatically instruments all Flask routes to expose metrics at <code>/metrics</code></li>
+                    <li><strong>FlaskInstrumentor:</strong> Creates distributed traces for all HTTP requests</li>
+                    <li><strong>SQLAlchemyInstrumentor:</strong> Traces all database queries with execution time</li>
+                    <li><strong>JaegerExporter:</strong> Sends trace data to Jaeger collector</li>
+                </ul>
+            </div>
+
+            <h3>Kubernetes Deployment Configuration</h3>
+
+            <h4>Pod Annotations for Prometheus</h4>
+
+            <pre><code><span class="keyword">apiVersion:</span> apps/v1
+<span class="keyword">kind:</span> Deployment
+<span class="keyword">metadata:</span>
+  <span class="keyword">name:</span> user-service
+<span class="keyword">spec:</span>
+  <span class="keyword">template:</span>
+    <span class="keyword">metadata:</span>
+      <span class="keyword">annotations:</span>
+        <span class="string">prometheus.io/scrape:</span> <span class="string">"true"</span>     <span class="comment"># Enable scraping</span>
+        <span class="string">prometheus.io/port:</span> <span class="string">"5000"</span>       <span class="comment"># Metrics port</span>
+        <span class="string">prometheus.io/path:</span> <span class="string">"/metrics"</span>  <span class="comment"># Metrics endpoint</span>
+    <span class="keyword">spec:</span>
+      <span class="keyword">containers:</span>
+      - <span class="keyword">name:</span> user-service
+        <span class="keyword">env:</span>
+        - <span class="keyword">name:</span> JAEGER_HOST
+          <span class="keyword">value:</span> <span class="string">"jaeger"</span>
+        - <span class="keyword">name:</span> JAEGER_PORT
+          <span class="keyword">value:</span> <span class="string">"6831"</span></code></pre>
+
+            <div class="success-box">
+                <h4>Automatic Instrumentation Benefits</h4>
+                <p>
+                    With this configuration, <strong>no manual code changes are needed in CQRS handlers, services, or repositories</strong>. OpenTelemetry automatically:
+                </p>
+                <ul>
+                    <li>Traces every HTTP request through the entire CQRS flow</li>
+                    <li>Records SQL queries executed by repositories</li>
+                    <li>Measures execution time at each layer</li>
+                    <li>Propagates trace context across service boundaries</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="integration">
+            <h2>8. Integration with CQRS Services</h2>
+
+            <h3>Monitoring CQRS Commands</h3>
+
+            <p>When a command is executed, the monitoring stack automatically captures:</p>
+
+            <div class="flow-diagram">
+                <div class="flow-box">POST /api/users/profile</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box prometheus">Prometheus: HTTP request counter++</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box jaeger">Jaeger: Start trace "create_profile"</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box service">CreateUserProfileCommand created</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box jaeger">Jaeger: Span "UserCommandHandler.handle_create_profile"</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box jaeger">Jaeger: Span "UserProfileService.create_profile"</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box jaeger">Jaeger: Span "SQLAlchemy INSERT"</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box prometheus">Prometheus: Record response time</div>
+            </div>
+
+            <h3>Monitoring CQRS Queries</h3>
+
+            <p>Query execution is similarly instrumented:</p>
+
+            <div class="flow-diagram">
+                <div class="flow-box">GET /api/users/profile/123</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box prometheus">Prometheus: Track query endpoint metrics</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box jaeger">Jaeger: Trace "get_profile_by_id"</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box service">GetUserProfileByIdQuery created</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box jaeger">Jaeger: Span "UserQueryHandler.handle_get_profile_by_id"</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box jaeger">Jaeger: Span "SQLAlchemy SELECT"</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box prometheus">Prometheus: Record cache hit/miss (if implemented)</div>
+            </div>
+
+            <h3>Key Insights Gained</h3>
+
+            <div class="grid-2">
+                <div class="responsibility-card">
+                    <h4>Command Performance</h4>
+                    <ul class="responsibility-list">
+                        <li>Which commands are slowest?</li>
+                        <li>Are writes blocking the system?</li>
+                        <li>Database write performance</li>
+                        <li>Validation overhead</li>
+                    </ul>
+                </div>
+
+                <div class="responsibility-card">
+                    <h4>Query Performance</h4>
+                    <ul class="responsibility-list">
+                        <li>Which queries are most frequent?</li>
+                        <li>Are reads optimized?</li>
+                        <li>Can we implement caching?</li>
+                        <li>Database index effectiveness</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="usage">
+            <h2>9. How to Use the Monitoring Stack</h2>
+
+            <h3>Step 1: Generate Traffic</h3>
+
+            <div class="info-box">
+                <p>Visit your application and perform operations:</p>
+                <ul>
+                    <li>Create user profiles (POST commands)</li>
+                    <li>View profiles (GET queries)</li>
+                    <li>Upload profile pictures</li>
+                    <li>Create and view job postings</li>
+                </ul>
+            </div>
+
+            <h3>Step 2: View Metrics in Prometheus</h3>
+
+            <div class="success-box">
+                <h4>Access: <code>http://prometheus.local</code></h4>
+                <p><strong>Example Queries:</strong></p>
+                <ul>
+                    <li><code>up</code> - Check which services are running</li>
+                    <li><code>flask_http_request_total</code> - Total requests per service</li>
+                    <li><code>rate(flask_http_request_duration_seconds_sum[5m])</code> - Average response time</li>
+                    <li><code>flask_http_request_exceptions_total</code> - Error count</li>
+                </ul>
+            </div>
+
+            <h3>Step 3: Create Dashboards in Grafana</h3>
+
+            <div class="success-box">
+                <h4>Access: <code>http://grafana.local</code> (admin/admin)</h4>
+                <p><strong>Create Dashboard Steps:</strong></p>
+                <ol>
+                    <li>Click "+" → "Dashboard" → "Add new panel"</li>
+                    <li>Select "Prometheus" as data source</li>
+                    <li>Enter PromQL query (e.g., <code>flask_http_request_total</code>)</li>
+                    <li>Choose visualization (Graph, Stat, Gauge, etc.)</li>
+                    <li>Save dashboard</li>
+                </ol>
+                <p>Or import pre-built Flask dashboards from <a href="https://grafana.com/grafana/dashboards/">Grafana.com</a></p>
+            </div>
+
+            <h3>Step 4: Trace Requests in Jaeger</h3>
+
+            <div class="success-box">
+                <h4>Access: <code>http://jaeger.local</code></h4>
+                <p><strong>How to Find Traces:</strong></p>
+                <ol>
+                    <li>Select service: "user-service" or "job-service"</li>
+                    <li>Click "Find Traces"</li>
+                    <li>Click on a trace to see detailed breakdown</li>
+                    <li>Examine each span to see timing</li>
+                    <li>Identify slow database queries or handler operations</li>
+                </ol>
+            </div>
+
+            <h3>Example: Debugging Slow Requests</h3>
+
+            <div class="warning-box">
+                <h4>Scenario: Users report slow profile creation</h4>
+                <ol>
+                    <li><strong>Grafana:</strong> Confirm average response time is high (>500ms)</li>
+                    <li><strong>Prometheus:</strong> Check which endpoint is affected (<code>/api/users/profile</code>)</li>
+                    <li><strong>Jaeger:</strong> Open a trace for CreateUserProfileCommand</li>
+                    <li><strong>Jaeger:</strong> See that database INSERT takes 400ms</li>
+                    <li><strong>Action:</strong> Add database index or optimize query</li>
+                    <li><strong>Verify:</strong> Watch metrics improve in Grafana</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="benefits">
+            <h2>10. Benefits & Best Practices</h2>
+
+            <h3>Benefits of Observability in CQRS</h3>
+
+            <div class="success-box">
+                <h4>1. Performance Optimization</h4>
+                <p>Identify bottlenecks in command and query handlers, optimize database queries, and improve overall system throughput.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>2. Debugging & Troubleshooting</h4>
+                <p>Quickly identify where errors occur in the CQRS flow, understand failure propagation, and reduce mean time to resolution (MTTR).</p>
+            </div>
+
+            <div class="success-box">
+                <h4>3. Capacity Planning</h4>
+                <p>Understand load patterns, predict when to scale services, and optimize resource allocation for commands vs queries.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>4. CQRS-Specific Insights</h4>
+                <p>Compare write (command) vs read (query) performance, identify command/query ratio, and optimize each path independently.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>5. Business Intelligence</h4>
+                <p>Track feature usage (which commands/queries are most popular), understand user behavior patterns, and make data-driven product decisions.</p>
+            </div>
+
+            <h3>Best Practices</h3>
+
+            <div class="responsibility-card">
+                <h4>DO's</h4>
+                <ul class="responsibility-list">
+                    <li>Monitor both commands and queries separately</li>
+                    <li>Set up alerts for high error rates or slow responses</li>
+                    <li>Create dashboards for each CQRS service</li>
+                    <li>Use traces to understand complex workflows</li>
+                    <li>Regularly review metrics for optimization opportunities</li>
+                    <li>Document baselines for normal system behavior</li>
+                </ul>
+            </div>
+
+            <div class="responsibility-card">
+                <h4>DON'Ts</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't rely on metrics alone - use logs and traces together
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't ignore slow queries - they compound under load
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't over-instrument - too many metrics create noise
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't forget to set retention policies for metrics/traces
+                    </li>
+                </ul>
+            </div>
+
+            <h3>Contribution to TalentLink Project</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aspect</th>
+                        <th>Without Monitoring</th>
+                        <th>With Monitoring Stack</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Debugging</td>
+                        <td>Guesswork, logs only</td>
+                        <td>Visual traces, exact bottlenecks identified</td>
+                    </tr>
+                    <tr>
+                        <td>Performance</td>
+                        <td>Unknown response times</td>
+                        <td>Real-time metrics, historical trends</td>
+                    </tr>
+                    <tr>
+                        <td>Scalability</td>
+                        <td>Reactive scaling</td>
+                        <td>Proactive scaling based on data</td>
+                    </tr>
+                    <tr>
+                        <td>CQRS Optimization</td>
+                        <td>Same infrastructure for reads/writes</td>
+                        <td>Optimize command/query paths independently</td>
+                    </tr>
+                    <tr>
+                        <td>Incident Response</td>
+                        <td>Hours to identify root cause</td>
+                        <td>Minutes with distributed tracing</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box">
+                <h4>Production Readiness</h4>
+                <p>
+                    With Prometheus, Grafana, and Jaeger integrated into TalentLink's CQRS architecture, the platform is now <strong>production-ready</strong> with enterprise-grade observability. This monitoring stack provides the visibility needed to maintain high availability, optimize performance, and deliver a reliable user experience.
+                </p>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 TalentLink - Observability & Monitoring Documentation</p>
+            <p>Prometheus | Grafana | Jaeger</p>
+            <p>Last Updated: December 6, 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        function exportToPDF() {
+            const originalTitle = document.title;
+            document.title = 'Observability-Monitoring-Documentation';
+            window.print();
+            document.title = originalTitle;
+        }
+    </script>
+</body>
+</html>

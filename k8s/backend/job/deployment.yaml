@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app: job-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: "/metrics"
     spec:
       imagePullSecrets:
         - name: ghcr-secret
@@ -30,6 +34,10 @@ spec:
               value: "postgresql://jobservice:jobservice123@jobdb-postgres:5432/jobdb"
             - name: UPLOAD_DIR
               value: "/app/uploads"
+            - name: JAEGER_HOST
+              value: "jaeger"
+            - name: JAEGER_PORT
+              value: "6831"
           volumeMounts:
             - name: uploads
               mountPath: /app/uploads
