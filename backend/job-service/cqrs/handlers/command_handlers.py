@@ -10,7 +10,8 @@ from cqrs.commands import (
     UpdateJobCommand,
     DeleteJobCommand,
     ApplyToJobCommand,
-    UpdateApplicationStatusCommand
+    UpdateApplicationStatusCommand,
+    DeleteApplicationCommand
 )
 
 
@@ -86,4 +87,14 @@ class ApplicationCommandHandler:
             application_id=command.application_id,
             employer_id=command.employer_id,
             status=command.status
+        )
+
+    def handle_delete_application(self, command: DeleteApplicationCommand) -> bool:
+        """
+        Handle DeleteApplicationCommand.
+        Deletes an application.
+        """
+        return self.service.delete_application(
+            application_id=command.application_id,
+            employer_id=command.employer_id
         )

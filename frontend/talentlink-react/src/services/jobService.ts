@@ -163,6 +163,21 @@ export class JobService {
     }
   }
 
+  static async deleteApplication(applicationId: number, employerId: string): Promise<void> {
+    try {
+      await axios.delete(
+        `${BASE_URL.replace('/jobs', '/applications')}/${applicationId}`,
+        {
+          headers: this.getAuthHeaders(),
+          data: { employer_id: employerId },
+        }
+      );
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to delete application';
+      throw new Error(message);
+    }
+  }
+
   // Helper function to convert file to base64
   static async fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {

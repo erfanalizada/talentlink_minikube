@@ -216,6 +216,19 @@ class JobApplicationService:
 
         return self.repository.update(application)
 
+    def delete_application(self, application_id: int, employer_id: str) -> bool:
+        """Delete an application."""
+        application = self.repository.get_by_id(application_id)
+        if not application:
+            return False
+
+        # Verify job ownership
+        job = self.job_repository.get_by_id(application.job_id)
+        if not job or job.employer_id != employer_id:
+            raise PermissionError("You can only delete applications for your own jobs")
+
+        return self.repository.delete(application_id)
+
     def _save_cv(self, employee_id: str, job_id: int, cv_base64: str) -> str:
         """Save CV file from base64 data."""
         try:

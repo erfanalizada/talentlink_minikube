@@ -15,6 +15,8 @@ const ApplicationsScreen: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [applications, setApplications] = useState<{ [jobId: number]: JobApplication[] }>({});
   const [error, setError] = useState('');
+  const [selectedApplications, setSelectedApplications] = useState<Set<number>>(new Set());
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   useEffect(() => {
     loadJobsAndApplications();
@@ -107,6 +109,150 @@ const ApplicationsScreen: React.FC = () => {
     }
   };
 
+  const toggleSelectApplication = (applicationId: number) => {
+    setSelectedApplications((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(applicationId)) {
+        newSet.delete(applicationId);
+      } else {
+        newSet.add(applicationId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllApplications = (jobId: number) => {
+    const jobApps = applications[jobId] || [];
+    setSelectedApplications((prev) => {
+      const newSet = new Set(prev);
+      jobApps.forEach((app) => newSet.add(app.application_id));
+      return newSet;
+    });
+  };
+
+  const deselectAllApplications = (jobId: number) => {
+    const jobApps = applications[jobId] || [];
+    setSelectedApplications((prev) => {
+      const newSet = new Set(prev);
+      jobApps.forEach((app) => newSet.delete(app.application_id));
+      return newSet;
+    });
+  };
+
+  const handleBulkAction = async (jobId: number, status: 'accepted' | 'rejected') => {
+    const jobApps = applications[jobId] || [];
+    const selectedInJob = jobApps.filter((app) => selectedApplications.has(app.application_id));
+
+    if (selectedInJob.length === 0) {
+      showError('No applications selected');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to ${status} ${selectedInJob.length} application(s)?`
+    );
+    if (!confirmed) return;
+
+    try {
+      setBulkProcessing(true);
+      const userId = TokenStorage.getUserId();
+      if (!userId) return;
+
+      // Process all selected applications
+      for (const app of selectedInJob) {
+        await JobService.updateApplicationStatus(app.application_id, userId, status);
+      }
+
+      // Refresh applications for this job
+      const updatedApps = await JobService.getJobApplications(jobId, userId);
+      setApplications((prev) => ({
+        ...prev,
+        [jobId]: updatedApps,
+      }));
+
+      // Clear selection
+      setSelectedApplications(new Set());
+
+      showSuccess(`${selectedInJob.length} application(s) ${status} successfully!`);
+    } catch (err: any) {
+      showError(err.message || 'Failed to update applications');
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
+  const handleDeleteApplication = async (applicationId: number, jobId: number) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this application? This action cannot be undone.'
+    );
+    if (!confirmed) return;
+
+    try {
+      const userId = TokenStorage.getUserId();
+      if (!userId) return;
+
+      await JobService.deleteApplication(applicationId, userId);
+
+      // Refresh applications for this job
+      const updatedApps = await JobService.getJobApplications(jobId, userId);
+      setApplications((prev) => ({
+        ...prev,
+        [jobId]: updatedApps,
+      }));
+
+      showSuccess('Application deleted successfully!');
+    } catch (err: any) {
+      showError(err.message || 'Failed to delete application');
+    }
+  };
+
+  const handleBulkDelete = async (jobId: number) => {
+    const jobApps = applications[jobId] || [];
+    const selectedInJob = jobApps.filter((app) => selectedApplications.has(app.application_id));
+
+    if (selectedInJob.length === 0) {
+      showError('No applications selected');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedInJob.length} application(s)? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setBulkProcessing(true);
+      const userId = TokenStorage.getUserId();
+      if (!userId) return;
+
+      // Delete all selected applications
+      for (const app of selectedInJob) {
+        await JobService.deleteApplication(app.application_id, userId);
+      }
+
+      // Refresh applications for this job
+      const updatedApps = await JobService.getJobApplications(jobId, userId);
+      setApplications((prev) => ({
+        ...prev,
+        [jobId]: updatedApps,
+      }));
+
+      // Clear selection
+      setSelectedApplications(new Set());
+
+      showSuccess(`${selectedInJob.length} application(s) deleted successfully!`);
+    } catch (err: any) {
+      showError(err.message || 'Failed to delete applications');
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
+  const getSelectedCountForJob = (jobId: number): number => {
+    const jobApps = applications[jobId] || [];
+    return jobApps.filter((app) => selectedApplications.has(app.application_id)).length;
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -135,29 +281,96 @@ const ApplicationsScreen: React.FC = () => {
         </Card>
       ) : (
         <div className={styles.jobsList}>
-          {jobs.map((job) => (
-            <Card key={job.job_id}>
-              <div className={styles.jobHeader}>
-                <h2>{job.title}</h2>
-                <span className={styles.applicationsCount}>
-                  {applications[job.job_id]?.length || 0} application(s)
-                </span>
-              </div>
-              <p className={styles.jobDescription}>{job.description}</p>
+          {jobs.map((job) => {
+            const jobApps = applications[job.job_id] || [];
+            const selectedCount = getSelectedCountForJob(job.job_id);
 
-              {applications[job.job_id] && applications[job.job_id].length > 0 ? (
-                <div className={styles.applicationsList}>
-                  <h3>Applications:</h3>
-                  {applications[job.job_id].map((app) => (
-                    <div key={app.application_id} className={styles.applicationCard}>
-                      <div className={styles.applicationHeader}>
-                        <span className={styles.employeeId}>
-                          {app.employee_profile?.username || `Employee ID: ${app.employee_id}`}
-                        </span>
-                        <span className={`${styles.statusBadge} ${getStatusBadgeClass(app.status)}`}>
-                          {app.status}
-                        </span>
+            return (
+              <Card key={job.job_id}>
+                <div className={styles.jobHeader}>
+                  <h2>{job.title}</h2>
+                  <span className={styles.applicationsCount}>
+                    {jobApps.length} application(s)
+                  </span>
+                </div>
+                <p className={styles.jobDescription}>{job.description}</p>
+
+                {jobApps.length > 0 ? (
+                  <>
+                    {/* Bulk Actions */}
+                    {jobApps.length > 0 && (
+                      <div className={styles.bulkActions}>
+                        <div className={styles.selectionInfo}>
+                          <Button
+                            variant="outlined"
+                            onClick={() => selectAllApplications(job.job_id)}
+                            disabled={bulkProcessing}
+                          >
+                            Select All ({jobApps.length})
+                          </Button>
+                          {selectedCount > 0 && (
+                            <>
+                              <Button
+                                variant="outlined"
+                                onClick={() => deselectAllApplications(job.job_id)}
+                                disabled={bulkProcessing}
+                              >
+                                Deselect All
+                              </Button>
+                              <span className={styles.selectedCount}>
+                                {selectedCount} selected
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        {selectedCount > 0 && (
+                          <div className={styles.bulkActionButtons}>
+                            <Button
+                              onClick={() => handleBulkAction(job.job_id, 'accepted')}
+                              loading={bulkProcessing}
+                              className={styles.acceptButton}
+                            >
+                              Accept Selected
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              onClick={() => handleBulkAction(job.job_id, 'rejected')}
+                              loading={bulkProcessing}
+                              className={styles.rejectButton}
+                            >
+                              Reject Selected
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              onClick={() => handleBulkDelete(job.job_id)}
+                              loading={bulkProcessing}
+                              className={styles.deleteButton}
+                            >
+                              Delete Selected
+                            </Button>
+                          </div>
+                        )}
                       </div>
+                    )}
+
+                    <div className={styles.applicationsList}>
+                      <h3>Applications:</h3>
+                      {jobApps.map((app) => (
+                        <div key={app.application_id} className={styles.applicationCard}>
+                          <div className={styles.applicationHeader}>
+                            <input
+                              type="checkbox"
+                              checked={selectedApplications.has(app.application_id)}
+                              onChange={() => toggleSelectApplication(app.application_id)}
+                              className={styles.checkbox}
+                            />
+                            <span className={styles.employeeId}>
+                              {app.employee_profile?.username || `Employee ID: ${app.employee_id}`}
+                            </span>
+                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(app.status)}`}>
+                              {app.status}
+                            </span>
+                          </div>
 
                       {/* Employee Profile Information */}
                       {app.employee_profile && (
@@ -210,34 +423,47 @@ const ApplicationsScreen: React.FC = () => {
                         </div>
                       </div>
 
-                      {app.status === 'pending' && (
-                        <div className={styles.actionButtons}>
-                          <Button
-                            variant="outlined"
-                            onClick={() =>
-                              handleUpdateStatus(app.application_id, job.job_id, 'accepted')
-                            }
-                          >
-                            Accept
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            onClick={() =>
-                              handleUpdateStatus(app.application_id, job.job_id, 'rejected')
-                            }
-                          >
-                            Reject
-                          </Button>
+                      <div className={styles.actionButtons}>
+                        {app.status === 'pending' && (
+                          <>
+                            <Button
+                              variant="outlined"
+                              onClick={() =>
+                                handleUpdateStatus(app.application_id, job.job_id, 'accepted')
+                              }
+                              className={styles.acceptButton}
+                            >
+                              Accept
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              onClick={() =>
+                                handleUpdateStatus(app.application_id, job.job_id, 'rejected')
+                              }
+                              className={styles.rejectButton}
+                            >
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        <Button
+                          variant="outlined"
+                          onClick={() => handleDeleteApplication(app.application_id, job.job_id)}
+                          className={styles.deleteButton}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                         </div>
-                      )}
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.noApplications}>No applications yet</p>
-              )}
-            </Card>
-          ))}
+                  </>
+                ) : (
+                  <p className={styles.noApplications}>No applications yet</p>
+                )}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

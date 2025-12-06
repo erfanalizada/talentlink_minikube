@@ -11,7 +11,8 @@
       "Bash(kubectl apply:*)",
       "Bash(kubectl wait:*)",
       "Bash(npm run build:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

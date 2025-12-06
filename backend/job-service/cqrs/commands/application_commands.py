@@ -22,3 +22,10 @@ class UpdateApplicationStatusCommand:
     application_id: int
     employer_id: str
     status: str
+
+
+@dataclass
+class DeleteApplicationCommand:
+    """Command to delete an application."""
+    application_id: int
+    employer_id: str

@@ -11,7 +11,7 @@ from database import SessionLocal
 from repositories import JobRepository, JobApplicationRepository
 from services import JobService, JobApplicationService
 from cqrs.handlers import JobCommandHandler, ApplicationCommandHandler, JobQueryHandler, ApplicationQueryHandler
-from cqrs.commands import CreateJobCommand, UpdateJobCommand, DeleteJobCommand, ApplyToJobCommand, UpdateApplicationStatusCommand
+from cqrs.commands import CreateJobCommand, UpdateJobCommand, DeleteJobCommand, ApplyToJobCommand, UpdateApplicationStatusCommand, DeleteApplicationCommand
 from cqrs.queries import GetAllJobsQuery, GetJobByIdQuery, GetJobsByEmployerQuery, GetAllJobsWithApplicationStatusQuery, GetApplicationsByJobQuery, GetApplicationsByEmployeeQuery
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -412,6 +412,48 @@ def update_application_status(application_id):
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"Failed to update application: {str(e)}"}), 500
+
+
+@jobs_bp.route("/api/applications/<int:application_id>", methods=["DELETE"])
+def delete_application(application_id):
+    """Delete an application (Employer only) - COMMAND."""
+    try:
+        data = request.get_json() if request.data else {}
+        employer_id = data.get("employer_id")
+
+        if not employer_id:
+            current_app.logger.warning(f"Delete application {application_id} failed: employer_id missing")
+            return jsonify({"error": "employer_id is required"}), 400
+
+        current_app.logger.info(f"Deleting application {application_id} by employer {employer_id}")
+
+        # Create command
+        command = DeleteApplicationCommand(
+            application_id=application_id,
+            employer_id=employer_id
+        )
+
+        # Execute command
+        command_handler, _, db = get_application_handlers()
+        try:
+            success = command_handler.handle_delete_application(command)
+            if not success:
+                current_app.logger.warning(f"Application {application_id} not found for deletion")
+                return jsonify({"error": "Application not found"}), 404
+
+            current_app.logger.info(f"✅ Application {application_id} deleted successfully")
+            return jsonify({"message": "Application deleted successfully"}), 200
+        finally:
+            db.close()
+
+    except PermissionError as e:
+        current_app.logger.warning(f"Permission denied deleting application {application_id}: {e}")
+        return jsonify({"error": str(e)}), 403
+    except Exception as e:
+        current_app.logger.error(f"❌ Failed to delete application {application_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to delete application: {str(e)}"}), 500
 
 
 # File serving
