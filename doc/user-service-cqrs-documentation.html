@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Service CQRS Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin: -20px -20px 40px -20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .toc h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc ul li {
+            margin: 8px 0;
+        }
+
+        .toc ul li a {
+            color: #555;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc ul li a:hover {
+            color: #667eea;
+        }
+
+        section {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 5px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .file-structure {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .file-structure .folder {
+            color: #61afef;
+        }
+
+        .file-structure .file {
+            color: #98c379;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #abb2bf;
+        }
+
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+        .function { color: #61afef; }
+        .class-name { color: #e5c07b; }
+
+        .flow-diagram {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flow-box {
+            background: #667eea;
+            color: white;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .flow-box.command {
+            background: #e74c3c;
+        }
+
+        .flow-box.query {
+            background: #3498db;
+        }
+
+        .flow-box.handler {
+            background: #2ecc71;
+        }
+
+        .flow-box.service {
+            background: #f39c12;
+        }
+
+        .flow-arrow {
+            font-size: 2em;
+            color: #999;
+            margin: 10px 0;
+        }
+
+        .responsibility-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .responsibility-card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .responsibility-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .responsibility-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .responsibility-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 40px -20px -20px -20px;
+        }
+
+        .pdf-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .pdf-button:hover {
+            background: #218838;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .pdf-button:active {
+            transform: translateY(1px);
+        }
+
+        @media print {
+            .pdf-button {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+                box-shadow: none;
+                padding: 0;
+            }
+
+            header {
+                margin: 0;
+                page-break-after: avoid;
+            }
+
+            section {
+                page-break-inside: avoid;
+            }
+
+            h2, h3, h4 {
+                page-break-after: avoid;
+            }
+
+            pre, .file-structure {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="content-to-pdf">
+        <header>
+            <h1>User Service CQRS Documentation</h1>
+            <p>Complete Guide to Command Query Responsibility Segregation Implementation</p>
+            <button class="pdf-button" onclick="exportToPDF()">📄 Export as PDF</button>
+        </header>
+
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#introduction">1. Introduction to CQRS</a></li>
+                <li><a href="#overview">2. CQRS in User Service</a></li>
+                <li><a href="#structure">3. Folder Structure</a></li>
+                <li><a href="#commands">4. Commands - Write Operations</a></li>
+                <li><a href="#queries">5. Queries - Read Operations</a></li>
+                <li><a href="#handlers">6. Handlers - Execution Layer</a></li>
+                <li><a href="#integration">7. Integration with Routes</a></li>
+                <li><a href="#flow">8. Complete Flow Diagram</a></li>
+                <li><a href="#relationships">9. Component Relationships</a></li>
+                <li><a href="#benefits">10. Benefits and Best Practices</a></li>
+            </ul>
+        </nav>
+
+        <section id="introduction">
+            <h2>1. Introduction to CQRS</h2>
+
+            <p>
+                <strong>CQRS (Command Query Responsibility Segregation)</strong> is a design pattern that separates read and write operations for a data store. Instead of using a single model for both reading and writing data, CQRS uses different models: Commands for writes and Queries for reads.
+            </p>
+
+            <div class="info-box">
+                <h4>Core Principle</h4>
+                <p>
+                    <strong>Commands:</strong> Change the state of the system (Create, Update, Delete)<br>
+                    <strong>Queries:</strong> Return data without modifying state (Read operations)
+                </p>
+            </div>
+
+            <div class="grid-2">
+                <div class="success-box">
+                    <h4>Commands (Write)</h4>
+                    <ul>
+                        <li>Modify system state</li>
+                        <li>Perform validation</li>
+                        <li>Execute business logic</li>
+                        <li>Return success/failure</li>
+                    </ul>
+                </div>
+                <div class="success-box">
+                    <h4>Queries (Read)</h4>
+                    <ul>
+                        <li>Never modify state</li>
+                        <li>Return data</li>
+                        <li>Can be cached</li>
+                        <li>Optimized for reading</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview">
+            <h2>2. CQRS in User Service</h2>
+
+            <p>
+                The User Service implements CQRS to manage user profile operations. The implementation follows a clean, simple architecture that separates concerns and makes the codebase more maintainable.
+            </p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operation Type</th>
+                        <th>HTTP Method</th>
+                        <th>CQRS Type</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Create Profile</td>
+                        <td>POST</td>
+                        <td>Command</td>
+                        <td>CreateUserProfileCommand</td>
+                    </tr>
+                    <tr>
+                        <td>Get Profile</td>
+                        <td>GET</td>
+                        <td>Query</td>
+                        <td>GetUserProfileByIdQuery</td>
+                    </tr>
+                    <tr>
+                        <td>Update Profile</td>
+                        <td>PUT/PATCH</td>
+                        <td>Command</td>
+                        <td>UpdateUserProfileCommand</td>
+                    </tr>
+                    <tr>
+                        <td>Delete Profile</td>
+                        <td>DELETE</td>
+                        <td>Command</td>
+                        <td>DeleteUserProfileCommand</td>
+                    </tr>
+                    <tr>
+                        <td>Upload Picture</td>
+                        <td>POST</td>
+                        <td>Command</td>
+                        <td>UploadProfilePictureCommand</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="structure">
+            <h2>3. Folder Structure</h2>
+
+            <p>The CQRS implementation is organized in a clean, modular structure within the <code>backend/user-service/cqrs/</code> directory:</p>
+
+            <div class="file-structure">
+<span class="folder">backend/user-service/cqrs/</span>
+├── <span class="file">__init__.py</span>                    <span class="comment"># Main exports for CQRS module</span>
+├── <span class="folder">commands/</span>
+│   ├── <span class="file">__init__.py</span>                <span class="comment"># Command exports</span>
+│   └── <span class="file">user_commands.py</span>           <span class="comment"># Command definitions</span>
+├── <span class="folder">queries/</span>
+│   ├── <span class="file">__init__.py</span>                <span class="comment"># Query exports</span>
+│   └── <span class="file">user_queries.py</span>            <span class="comment"># Query definitions</span>
+└── <span class="folder">handlers/</span>
+    ├── <span class="file">__init__.py</span>                <span class="comment"># Handler exports</span>
+    ├── <span class="file">command_handlers.py</span>        <span class="comment"># Command execution logic</span>
+    └── <span class="file">query_handlers.py</span>          <span class="comment"># Query execution logic</span>
+            </div>
+
+            <div class="warning-box">
+                <strong>Important:</strong> Each module follows a clear separation of concerns. Commands and Queries are pure data structures (dataclasses), while Handlers contain the execution logic.
+            </div>
+        </section>
+
+        <section id="commands">
+            <h2>4. Commands - Write Operations</h2>
+
+            <h3>File: <code>cqrs/commands/user_commands.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Define data structures for write operations</li>
+                    <li>Represent user intentions to modify state</li>
+                    <li>Encapsulate all required parameters for operations</li>
+                    <li>Provide type safety through dataclasses</li>
+                </ul>
+            </div>
+
+            <h4>Command Definitions</h4>
+
+            <pre><code><span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass
+<span class="keyword">from</span> typing <span class="keyword">import</span> Optional
+
+
+<span class="comment">"""
+User-related command definitions.
+Commands represent write operations that modify state.
+"""</span>
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">CreateUserProfileCommand</span>:
+    <span class="string">"""Command to create a new user profile."""</span>
+    user_id: <span class="class-name">str</span>
+    username: <span class="class-name">str</span>
+    email: <span class="class-name">str</span>
+    role: <span class="class-name">str</span>
+    description: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    phone_number: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    secondary_email: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    address: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">UpdateUserProfileCommand</span>:
+    <span class="string">"""Command to update an existing user profile."""</span>
+    user_id: <span class="class-name">str</span>
+    username: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    email: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    description: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    phone_number: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    secondary_email: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    address: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">DeleteUserProfileCommand</span>:
+    <span class="string">"""Command to delete a user profile."""</span>
+    user_id: <span class="class-name">str</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">UploadProfilePictureCommand</span>:
+    <span class="string">"""Command to upload a profile picture."""</span>
+    user_id: <span class="class-name">str</span>
+    image_base64: <span class="class-name">str</span></code></pre>
+
+            <div class="info-box">
+                <h4>Key Points</h4>
+                <ul>
+                    <li><strong>Immutable:</strong> Dataclasses are frozen data structures</li>
+                    <li><strong>Type-Safe:</strong> Python type hints ensure correct usage</li>
+                    <li><strong>Self-Documenting:</strong> Command names clearly indicate intent</li>
+                    <li><strong>Validation-Ready:</strong> Can add validation in __post_init__ if needed</li>
+                </ul>
+            </div>
+
+            <h3>File: <code>cqrs/commands/__init__.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Export all command classes for easy importing</li>
+                    <li>Provide clean API for command consumers</li>
+                    <li>Define __all__ for explicit exports</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> .user_commands <span class="keyword">import</span> (
+    CreateUserProfileCommand,
+    UpdateUserProfileCommand,
+    DeleteUserProfileCommand,
+    UploadProfilePictureCommand
+)
+
+__all__ = [
+    <span class="string">'CreateUserProfileCommand'</span>,
+    <span class="string">'UpdateUserProfileCommand'</span>,
+    <span class="string">'DeleteUserProfileCommand'</span>,
+    <span class="string">'UploadProfilePictureCommand'</span>,
+]</code></pre>
+        </section>
+
+        <section id="queries">
+            <h2>5. Queries - Read Operations</h2>
+
+            <h3>File: <code>cqrs/queries/user_queries.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Define data structures for read operations</li>
+                    <li>Represent requests for data without modifying state</li>
+                    <li>Encapsulate query parameters and filters</li>
+                    <li>Enable query optimization and caching strategies</li>
+                </ul>
+            </div>
+
+            <h4>Query Definitions</h4>
+
+            <pre><code><span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass
+
+
+<span class="comment">"""
+User-related query definitions.
+Queries represent read operations that don't modify state.
+"""</span>
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetUserProfileByIdQuery</span>:
+    <span class="string">"""Query to get a user profile by user ID."""</span>
+    user_id: <span class="class-name">str</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetUserProfileByUsernameQuery</span>:
+    <span class="string">"""Query to get a user profile by username."""</span>
+    username: <span class="class-name">str</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetAllUserProfilesQuery</span>:
+    <span class="string">"""Query to get all user profiles."""</span>
+    <span class="keyword">pass</span></code></pre>
+
+            <div class="info-box">
+                <h4>Query Characteristics</h4>
+                <ul>
+                    <li><strong>Read-Only:</strong> Never modify system state</li>
+                    <li><strong>Idempotent:</strong> Same query always returns same result (for same state)</li>
+                    <li><strong>Cacheable:</strong> Results can be cached for performance</li>
+                    <li><strong>Optimized:</strong> Can use different data models optimized for reading</li>
+                </ul>
+            </div>
+
+            <h3>File: <code>cqrs/queries/__init__.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Export all query classes for easy importing</li>
+                    <li>Provide clean API for query consumers</li>
+                    <li>Centralize query exports</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> .user_queries <span class="keyword">import</span> (
+    GetUserProfileByIdQuery,
+    GetUserProfileByUsernameQuery,
+    GetAllUserProfilesQuery
+)
+
+__all__ = [
+    <span class="string">'GetUserProfileByIdQuery'</span>,
+    <span class="string">'GetUserProfileByUsernameQuery'</span>,
+    <span class="string">'GetAllUserProfilesQuery'</span>,
+]</code></pre>
+        </section>
+
+        <section id="handlers">
+            <h2>6. Handlers - Execution Layer</h2>
+
+            <h3>File: <code>cqrs/handlers/command_handlers.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Execute commands by delegating to service layer</li>
+                    <li>Transform command objects into service method calls</li>
+                    <li>Handle command-specific business logic coordination</li>
+                    <li>Return results or raise exceptions</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> typing <span class="keyword">import</span> Optional
+<span class="keyword">from</span> services <span class="keyword">import</span> UserProfileService
+<span class="keyword">from</span> models <span class="keyword">import</span> UserProfile
+<span class="keyword">from</span> cqrs.commands <span class="keyword">import</span> (
+    CreateUserProfileCommand,
+    UpdateUserProfileCommand,
+    DeleteUserProfileCommand,
+    UploadProfilePictureCommand
+)
+
+
+<span class="keyword">class</span> <span class="class-name">UserCommandHandler</span>:
+    <span class="string">"""Handler for user-related commands."""</span>
+
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, service: UserProfileService):
+        <span class="keyword">self</span>.service = service
+
+    <span class="keyword">def</span> <span class="function">handle_create_profile</span>(<span class="keyword">self</span>, command: CreateUserProfileCommand) -> UserProfile:
+        <span class="string">"""Handle CreateUserProfileCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.create_profile(
+            user_id=command.user_id,
+            username=command.username,
+            email=command.email,
+            role=command.role,
+            description=command.description,
+            phone_number=command.phone_number,
+            secondary_email=command.secondary_email,
+            address=command.address
+        )
+
+    <span class="keyword">def</span> <span class="function">handle_update_profile</span>(<span class="keyword">self</span>, command: UpdateUserProfileCommand) -> Optional[UserProfile]:
+        <span class="string">"""Handle UpdateUserProfileCommand."""</span>
+        updates = {}
+        <span class="keyword">if</span> command.username <span class="keyword">is not None</span>:
+            updates[<span class="string">'username'</span>] = command.username
+        <span class="keyword">if</span> command.email <span class="keyword">is not None</span>:
+            updates[<span class="string">'email'</span>] = command.email
+        <span class="comment"># ... more fields ...</span>
+
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.update_profile(command.user_id, updates)
+
+    <span class="keyword">def</span> <span class="function">handle_delete_profile</span>(<span class="keyword">self</span>, command: DeleteUserProfileCommand) -> <span class="class-name">bool</span>:
+        <span class="string">"""Handle DeleteUserProfileCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.delete_profile(command.user_id)
+
+    <span class="keyword">def</span> <span class="function">handle_upload_profile_picture</span>(<span class="keyword">self</span>, command: UploadProfilePictureCommand) -> <span class="class-name">str</span>:
+        <span class="string">"""Handle UploadProfilePictureCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.upload_profile_picture(
+            command.user_id,
+            command.image_base64
+        )</code></pre>
+
+            <h3>File: <code>cqrs/handlers/query_handlers.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Execute queries by delegating to service/repository layer</li>
+                    <li>Transform query objects into service method calls</li>
+                    <li>Optimize query execution (caching, pagination, etc.)</li>
+                    <li>Return read-only data</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> typing <span class="keyword">import</span> List, Optional
+<span class="keyword">from</span> services <span class="keyword">import</span> UserProfileService
+<span class="keyword">from</span> models <span class="keyword">import</span> UserProfile
+<span class="keyword">from</span> cqrs.queries <span class="keyword">import</span> (
+    GetUserProfileByIdQuery,
+    GetUserProfileByUsernameQuery,
+    GetAllUserProfilesQuery
+)
+
+
+<span class="keyword">class</span> <span class="class-name">UserQueryHandler</span>:
+    <span class="string">"""Handler for user-related queries."""</span>
+
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, service: UserProfileService):
+        <span class="keyword">self</span>.service = service
+
+    <span class="keyword">def</span> <span class="function">handle_get_profile_by_id</span>(<span class="keyword">self</span>, query: GetUserProfileByIdQuery) -> Optional[UserProfile]:
+        <span class="string">"""Handle GetUserProfileByIdQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.get_profile(query.user_id)
+
+    <span class="keyword">def</span> <span class="function">handle_get_profile_by_username</span>(<span class="keyword">self</span>, query: GetUserProfileByUsernameQuery) -> Optional[UserProfile]:
+        <span class="string">"""Handle GetUserProfileByUsernameQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.repository.get_by_username(query.username)
+
+    <span class="keyword">def</span> <span class="function">handle_get_all_profiles</span>(<span class="keyword">self</span>, query: GetAllUserProfilesQuery) -> List[UserProfile]:
+        <span class="string">"""Handle GetAllUserProfilesQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.repository.get_all()</code></pre>
+
+            <h3>File: <code>cqrs/handlers/__init__.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Export handler classes for easy importing</li>
+                    <li>Provide unified access to all handlers</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> .command_handlers <span class="keyword">import</span> UserCommandHandler
+<span class="keyword">from</span> .query_handlers <span class="keyword">import</span> UserQueryHandler
+
+__all__ = [
+    <span class="string">'UserCommandHandler'</span>,
+    <span class="string">'UserQueryHandler'</span>,
+]</code></pre>
+        </section>
+
+        <section id="integration">
+            <h2>7. Integration with Routes</h2>
+
+            <p>The routes layer integrates CQRS by creating command/query objects from HTTP requests and executing them through handlers.</p>
+
+            <h3>Factory Function</h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility of <code>get_handlers()</code></h4>
+                <ul class="responsibility-list">
+                    <li>Create database session</li>
+                    <li>Instantiate repository with session</li>
+                    <li>Instantiate service with repository</li>
+                    <li>Create command and query handlers with service</li>
+                    <li>Return handlers and session for cleanup</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">def</span> <span class="function">get_handlers</span>():
+    <span class="string">"""Factory function for user CQRS handlers."""</span>
+    db = create_db_session()
+    repository = UserProfileRepository(db)
+    service = UserProfileService(repository)
+    command_handler = UserCommandHandler(service)
+    query_handler = UserQueryHandler(service)
+    <span class="keyword">return</span> command_handler, query_handler, db</code></pre>
+
+            <h3>Example: Create Profile (Command)</h3>
+
+            <pre><code><span class="keyword">@user_bp.route</span>(<span class="string">"/profile"</span>, methods=[<span class="string">"POST"</span>])
+<span class="keyword">def</span> <span class="function">create_profile</span>():
+    <span class="string">"""Create a new user profile - COMMAND."""</span>
+    data = request.get_json()
+
+    <span class="comment"># Step 1: Create command object from request data</span>
+    command = CreateUserProfileCommand(
+        user_id=data[<span class="string">"user_id"</span>],
+        username=data[<span class="string">"username"</span>],
+        email=data[<span class="string">"email"</span>],
+        role=data[<span class="string">"role"</span>]
+    )
+
+    <span class="comment"># Step 2: Get handlers</span>
+    command_handler, _, db = get_handlers()
+
+    <span class="keyword">try</span>:
+        <span class="comment"># Step 3: Execute command</span>
+        profile = command_handler.handle_create_profile(command)
+        <span class="keyword">return</span> jsonify(profile), <span class="class-name">201</span>
+    <span class="keyword">finally</span>:
+        db.close()</code></pre>
+
+            <h3>Example: Get Profile (Query)</h3>
+
+            <pre><code><span class="keyword">@user_bp.route</span>(<span class="string">"/profile/&lt;user_id&gt;"</span>, methods=[<span class="string">"GET"</span>])
+<span class="keyword">def</span> <span class="function">get_profile</span>(user_id):
+    <span class="string">"""Get user profile by ID - QUERY."""</span>
+
+    <span class="comment"># Step 1: Create query object</span>
+    query = GetUserProfileByIdQuery(user_id=user_id)
+
+    <span class="comment"># Step 2: Get handlers</span>
+    _, query_handler, db = get_handlers()
+
+    <span class="keyword">try</span>:
+        <span class="comment"># Step 3: Execute query</span>
+        profile = query_handler.handle_get_profile_by_id(query)
+
+        <span class="keyword">if not</span> profile:
+            <span class="keyword">return</span> jsonify({<span class="string">"error"</span>: <span class="string">"Profile not found"</span>}), <span class="class-name">404</span>
+
+        <span class="keyword">return</span> jsonify(profile), <span class="class-name">200</span>
+    <span class="keyword">finally</span>:
+        db.close()</code></pre>
+        </section>
+
+        <section id="flow">
+            <h2>8. Complete Flow Diagram</h2>
+
+            <h3>Command Flow (Write Operation)</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-box">HTTP POST Request</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Route extracts data</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box command">Creates Command Object</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Factory creates handlers</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box handler">Command Handler executes</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box service">Service Layer processes</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Repository persists to DB</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Returns modified entity</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">HTTP Response (201/200)</div>
+            </div>
+
+            <h3>Query Flow (Read Operation)</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-box">HTTP GET Request</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Route extracts parameters</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box query">Creates Query Object</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Factory creates handlers</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box handler">Query Handler executes</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box service">Service/Repository retrieves</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Returns data from DB</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">HTTP Response (200)</div>
+            </div>
+        </section>
+
+        <section id="relationships">
+            <h2>9. Component Relationships</h2>
+
+            <h3>Dependency Flow</h3>
+
+            <pre><code>Route Layer (routes.py)
+    ↓ uses
+Command/Query Objects (commands/*.py, queries/*.py)
+    ↓ passed to
+Handlers (handlers/*.py)
+    ↓ delegates to
+Service Layer (services.py)
+    ↓ uses
+Repository Layer (repositories.py)
+    ↓ accesses
+Database (via SQLAlchemy)</code></pre>
+
+            <h3>Component Interaction Table</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Creates/Uses</th>
+                        <th>Depends On</th>
+                        <th>Returns To</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Routes</strong></td>
+                        <td>Command/Query objects</td>
+                        <td>Handlers, Factory</td>
+                        <td>HTTP Client</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Factory</strong></td>
+                        <td>Handlers, Service, Repository</td>
+                        <td>Database Session</td>
+                        <td>Routes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Command Handler</strong></td>
+                        <td>Service calls</td>
+                        <td>Service Layer</td>
+                        <td>Routes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Query Handler</strong></td>
+                        <td>Service/Repository calls</td>
+                        <td>Service/Repository</td>
+                        <td>Routes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Service</strong></td>
+                        <td>Business logic</td>
+                        <td>Repository</td>
+                        <td>Handlers</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Repository</strong></td>
+                        <td>Database queries</td>
+                        <td>Database Session</td>
+                        <td>Service/Query Handler</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>How Components Complete Each Other</h3>
+
+            <div class="grid-2">
+                <div class="responsibility-card">
+                    <h4>Commands + Command Handlers</h4>
+                    <p>
+                        Commands define <em>what</em> to do (the intention), while Command Handlers define <em>how</em> to do it (the execution). They are two halves of the same operation.
+                    </p>
+                </div>
+
+                <div class="responsibility-card">
+                    <h4>Queries + Query Handlers</h4>
+                    <p>
+                        Queries define <em>what data</em> to retrieve (the request), while Query Handlers define <em>how</em> to retrieve it (the data access). They work together to provide read operations.
+                    </p>
+                </div>
+
+                <div class="responsibility-card">
+                    <h4>Handlers + Service Layer</h4>
+                    <p>
+                        Handlers orchestrate the flow and validation, while the Service Layer contains the business logic. Handlers are the bridge between the API and business logic.
+                    </p>
+                </div>
+
+                <div class="responsibility-card">
+                    <h4>Service + Repository</h4>
+                    <p>
+                        Service contains business rules and validation, while Repository handles data persistence. Together they provide a complete data access pattern.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="benefits">
+            <h2>10. Benefits and Best Practices</h2>
+
+            <h3>Benefits of CQRS Implementation</h3>
+
+            <div class="success-box">
+                <h4>1. Separation of Concerns</h4>
+                <p>Read and write operations are completely separated, making the code easier to understand and maintain.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>2. Scalability</h4>
+                <p>Read and write operations can be scaled independently. Read-heavy workloads can use caching, while writes maintain consistency.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>3. Clarity and Intent</h4>
+                <p>Command and query names clearly express user intentions (CreateUserProfileCommand vs GetUserProfileByIdQuery).</p>
+            </div>
+
+            <div class="success-box">
+                <h4>4. Testability</h4>
+                <p>Each component can be tested independently. Commands, Queries, and Handlers are easy to unit test.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>5. Maintainability</h4>
+                <p>Changes to read logic don't affect write logic and vice versa. Each operation is isolated.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>6. Type Safety</h4>
+                <p>Using dataclasses provides compile-time type checking and reduces runtime errors.</p>
+            </div>
+
+            <h3>Best Practices</h3>
+
+            <div class="responsibility-card">
+                <h4>DO's</h4>
+                <ul class="responsibility-list">
+                    <li>Keep commands and queries as simple data structures</li>
+                    <li>Put business logic in the service layer, not handlers</li>
+                    <li>Use descriptive names that express intent</li>
+                    <li>Always close database sessions in finally blocks</li>
+                    <li>Keep handlers focused on orchestration, not logic</li>
+                    <li>Use type hints for better code documentation</li>
+                </ul>
+            </div>
+
+            <div class="responsibility-card">
+                <h4>DON'Ts</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't put business logic in command/query classes
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't mix reads and writes in the same handler method
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't bypass handlers and call services directly from routes
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't forget to handle exceptions properly
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't create overly complex command/query hierarchies
+                    </li>
+                </ul>
+            </div>
+
+            <h3>Future Enhancements</h3>
+
+            <div class="info-box">
+                <h4>Potential Improvements</h4>
+                <ul>
+                    <li><strong>Event Sourcing:</strong> Add event logging for all commands</li>
+                    <li><strong>Caching:</strong> Implement query result caching for better performance</li>
+                    <li><strong>Validation:</strong> Add command validators before execution</li>
+                    <li><strong>Async Operations:</strong> Support asynchronous command/query execution</li>
+                    <li><strong>Audit Trail:</strong> Track who executed which commands when</li>
+                    <li><strong>Middleware:</strong> Add pre/post execution hooks</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 TalentLink - User Service CQRS Documentation</p>
+            <p>Last Updated: December 6, 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        function exportToPDF() {
+            // Save original title
+            const originalTitle = document.title;
+
+            // Set PDF filename
+            document.title = 'User-Service-CQRS-Documentation';
+
+            // Trigger browser's print dialog (Save as PDF)
+            window.print();
+
+            // Restore original title
+            document.title = originalTitle;
+        }
+    </script>
+</body>
+</html>

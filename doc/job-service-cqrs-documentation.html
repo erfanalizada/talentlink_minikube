@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Service CQRS Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin: -20px -20px 40px -20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .toc h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc ul li {
+            margin: 8px 0;
+        }
+
+        .toc ul li a {
+            color: #555;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc ul li a:hover {
+            color: #667eea;
+        }
+
+        section {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 5px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .file-structure {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .file-structure .folder {
+            color: #61afef;
+        }
+
+        .file-structure .file {
+            color: #98c379;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #abb2bf;
+        }
+
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+        .function { color: #61afef; }
+        .class-name { color: #e5c07b; }
+
+        .flow-diagram {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flow-box {
+            background: #667eea;
+            color: white;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .flow-box.command {
+            background: #e74c3c;
+        }
+
+        .flow-box.query {
+            background: #3498db;
+        }
+
+        .flow-box.handler {
+            background: #2ecc71;
+        }
+
+        .flow-box.service {
+            background: #f39c12;
+        }
+
+        .flow-arrow {
+            font-size: 2em;
+            color: #999;
+            margin: 10px 0;
+        }
+
+        .responsibility-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .responsibility-card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .responsibility-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .responsibility-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .responsibility-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 40px -20px -20px -20px;
+        }
+
+        .pdf-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .pdf-button:hover {
+            background: #218838;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .pdf-button:active {
+            transform: translateY(1px);
+        }
+
+        @media print {
+            .pdf-button {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+                box-shadow: none;
+                padding: 0;
+            }
+
+            header {
+                margin: 0;
+                page-break-after: avoid;
+            }
+
+            section {
+                page-break-inside: avoid;
+            }
+
+            h2, h3, h4 {
+                page-break-after: avoid;
+            }
+
+            pre, .file-structure {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="content-to-pdf">
+        <header>
+            <h1>Job Service CQRS Documentation</h1>
+            <p>Complete Guide to Command Query Responsibility Segregation Implementation</p>
+            <button class="pdf-button" onclick="exportToPDF()">📄 Export as PDF</button>
+        </header>
+
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#introduction">1. Introduction to CQRS</a></li>
+                <li><a href="#overview">2. CQRS in Job Service</a></li>
+                <li><a href="#structure">3. Folder Structure</a></li>
+                <li><a href="#commands">4. Commands - Write Operations</a></li>
+                <li><a href="#queries">5. Queries - Read Operations</a></li>
+                <li><a href="#handlers">6. Handlers - Execution Layer</a></li>
+                <li><a href="#integration">7. Integration with Routes</a></li>
+                <li><a href="#flow">8. Complete Flow Diagram</a></li>
+                <li><a href="#relationships">9. Component Relationships</a></li>
+                <li><a href="#benefits">10. Benefits and Best Practices</a></li>
+            </ul>
+        </nav>
+
+        <section id="introduction">
+            <h2>1. Introduction to CQRS</h2>
+
+            <p>
+                <strong>CQRS (Command Query Responsibility Segregation)</strong> is a design pattern that separates read and write operations for a data store. Instead of using a single model for both reading and writing data, CQRS uses different models: Commands for writes and Queries for reads.
+            </p>
+
+            <div class="info-box">
+                <h4>Core Principle</h4>
+                <p>
+                    <strong>Commands:</strong> Change the state of the system (Create, Update, Delete)<br>
+                    <strong>Queries:</strong> Return data without modifying state (Read operations)
+                </p>
+            </div>
+
+            <div class="grid-2">
+                <div class="success-box">
+                    <h4>Commands (Write)</h4>
+                    <ul>
+                        <li>Modify system state</li>
+                        <li>Perform validation</li>
+                        <li>Execute business logic</li>
+                        <li>Return success/failure</li>
+                    </ul>
+                </div>
+                <div class="success-box">
+                    <h4>Queries (Read)</h4>
+                    <ul>
+                        <li>Never modify state</li>
+                        <li>Return data</li>
+                        <li>Can be cached</li>
+                        <li>Optimized for reading</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview">
+            <h2>2. CQRS in Job Service</h2>
+
+            <p>
+                The Job Service implements CQRS to manage both job postings and job applications. The implementation is organized into two main domains: <strong>Jobs</strong> and <strong>Applications</strong>, each with their own commands and queries.
+            </p>
+
+            <h3>Job Operations</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operation Type</th>
+                        <th>HTTP Method</th>
+                        <th>CQRS Type</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Create Job</td>
+                        <td>POST</td>
+                        <td>Command</td>
+                        <td>CreateJobCommand</td>
+                    </tr>
+                    <tr>
+                        <td>Get All Jobs</td>
+                        <td>GET</td>
+                        <td>Query</td>
+                        <td>GetAllJobsQuery</td>
+                    </tr>
+                    <tr>
+                        <td>Get Job by ID</td>
+                        <td>GET</td>
+                        <td>Query</td>
+                        <td>GetJobByIdQuery</td>
+                    </tr>
+                    <tr>
+                        <td>Get Jobs by Employer</td>
+                        <td>GET</td>
+                        <td>Query</td>
+                        <td>GetJobsByEmployerQuery</td>
+                    </tr>
+                    <tr>
+                        <td>Update Job</td>
+                        <td>PUT/PATCH</td>
+                        <td>Command</td>
+                        <td>UpdateJobCommand</td>
+                    </tr>
+                    <tr>
+                        <td>Delete Job</td>
+                        <td>DELETE</td>
+                        <td>Command</td>
+                        <td>DeleteJobCommand</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Application Operations</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operation Type</th>
+                        <th>HTTP Method</th>
+                        <th>CQRS Type</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Apply to Job</td>
+                        <td>POST</td>
+                        <td>Command</td>
+                        <td>ApplyToJobCommand</td>
+                    </tr>
+                    <tr>
+                        <td>Get Applications by Job</td>
+                        <td>GET</td>
+                        <td>Query</td>
+                        <td>GetApplicationsByJobQuery</td>
+                    </tr>
+                    <tr>
+                        <td>Get Applications by Employee</td>
+                        <td>GET</td>
+                        <td>Query</td>
+                        <td>GetApplicationsByEmployeeQuery</td>
+                    </tr>
+                    <tr>
+                        <td>Update Application Status</td>
+                        <td>PUT/PATCH</td>
+                        <td>Command</td>
+                        <td>UpdateApplicationStatusCommand</td>
+                    </tr>
+                    <tr>
+                        <td>Delete Application</td>
+                        <td>DELETE</td>
+                        <td>Command</td>
+                        <td>DeleteApplicationCommand</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="structure">
+            <h2>3. Folder Structure</h2>
+
+            <p>The CQRS implementation is organized in a clean, modular structure within the <code>backend/job-service/cqrs/</code> directory:</p>
+
+            <div class="file-structure">
+<span class="folder">backend/job-service/cqrs/</span>
+├── <span class="file">__init__.py</span>                        <span class="comment"># Main exports for CQRS module</span>
+├── <span class="folder">commands/</span>
+│   ├── <span class="file">__init__.py</span>                    <span class="comment"># Command exports</span>
+│   ├── <span class="file">job_commands.py</span>                <span class="comment"># Job command definitions</span>
+│   └── <span class="file">application_commands.py</span>        <span class="comment"># Application command definitions</span>
+├── <span class="folder">queries/</span>
+│   ├── <span class="file">__init__.py</span>                    <span class="comment"># Query exports</span>
+│   ├── <span class="file">job_queries.py</span>                 <span class="comment"># Job query definitions</span>
+│   └── <span class="file">application_queries.py</span>         <span class="comment"># Application query definitions</span>
+└── <span class="folder">handlers/</span>
+    ├── <span class="file">__init__.py</span>                    <span class="comment"># Handler exports</span>
+    ├── <span class="file">command_handlers.py</span>            <span class="comment"># Command execution logic</span>
+    └── <span class="file">query_handlers.py</span>              <span class="comment"># Query execution logic</span>
+            </div>
+
+            <div class="warning-box">
+                <strong>Important:</strong> The Job service handles two distinct domains (Jobs and Applications), each with their own commands and queries. However, handlers are unified in single files for simplicity.
+            </div>
+        </section>
+
+        <section id="commands">
+            <h2>4. Commands - Write Operations</h2>
+
+            <h3>File: <code>cqrs/commands/job_commands.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Define data structures for job write operations</li>
+                    <li>Represent employer intentions to modify job postings</li>
+                    <li>Encapsulate all required parameters for job operations</li>
+                    <li>Provide type safety through dataclasses</li>
+                </ul>
+            </div>
+
+            <h4>Job Command Definitions</h4>
+
+            <pre><code><span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass
+<span class="keyword">from</span> typing <span class="keyword">import</span> Optional, List
+
+
+<span class="comment">"""
+Job-related command definitions.
+Commands represent write operations that modify state.
+"""</span>
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">CreateJobCommand</span>:
+    <span class="string">"""Command to create a new job posting."""</span>
+    employer_id: <span class="class-name">str</span>
+    title: <span class="class-name">str</span>
+    description: <span class="class-name">str</span>
+    salary: Optional[<span class="class-name">float</span>] = <span class="keyword">None</span>
+    skills: Optional[List[<span class="class-name">str</span>]] = <span class="keyword">None</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">UpdateJobCommand</span>:
+    <span class="string">"""Command to update an existing job posting."""</span>
+    job_id: <span class="class-name">int</span>
+    employer_id: <span class="class-name">str</span>
+    title: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    description: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    salary: Optional[<span class="class-name">float</span>] = <span class="keyword">None</span>
+    skills: Optional[List[<span class="class-name">str</span>]] = <span class="keyword">None</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">DeleteJobCommand</span>:
+    <span class="string">"""Command to delete a job posting."""</span>
+    job_id: <span class="class-name">int</span>
+    employer_id: <span class="class-name">str</span></code></pre>
+
+            <h3>File: <code>cqrs/commands/application_commands.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Define data structures for application write operations</li>
+                    <li>Represent employee/employer intentions for applications</li>
+                    <li>Handle CV uploads and application status changes</li>
+                    <li>Support multiple file upload methods (base64, URL)</li>
+                </ul>
+            </div>
+
+            <h4>Application Command Definitions</h4>
+
+            <pre><code><span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass
+<span class="keyword">from</span> typing <span class="keyword">import</span> Optional
+
+
+<span class="comment">"""
+Application-related command definitions.
+Commands represent write operations that modify state.
+"""</span>
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">ApplyToJobCommand</span>:
+    <span class="string">"""Command to apply to a job posting."""</span>
+    job_id: <span class="class-name">int</span>
+    employee_id: <span class="class-name">str</span>
+    cv_base64: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    portfolio_url: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+    cv_url: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">UpdateApplicationStatusCommand</span>:
+    <span class="string">"""Command to update an application's status."""</span>
+    application_id: <span class="class-name">int</span>
+    employer_id: <span class="class-name">str</span>
+    status: <span class="class-name">str</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">DeleteApplicationCommand</span>:
+    <span class="string">"""Command to delete an application."""</span>
+    application_id: <span class="class-name">int</span>
+    employer_id: <span class="class-name">str</span></code></pre>
+
+            <div class="info-box">
+                <h4>Key Points</h4>
+                <ul>
+                    <li><strong>Authorization:</strong> Commands include employer_id/employee_id for permission checks</li>
+                    <li><strong>Flexibility:</strong> ApplyToJobCommand supports multiple CV upload methods</li>
+                    <li><strong>Type-Safe:</strong> Python type hints ensure correct usage</li>
+                    <li><strong>Self-Documenting:</strong> Command names clearly indicate intent</li>
+                </ul>
+            </div>
+
+            <h3>File: <code>cqrs/commands/__init__.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Export all command classes for easy importing</li>
+                    <li>Provide clean API for command consumers</li>
+                    <li>Centralize both job and application commands</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> .job_commands <span class="keyword">import</span> (
+    CreateJobCommand,
+    UpdateJobCommand,
+    DeleteJobCommand
+)
+<span class="keyword">from</span> .application_commands <span class="keyword">import</span> (
+    ApplyToJobCommand,
+    UpdateApplicationStatusCommand,
+    DeleteApplicationCommand
+)
+
+__all__ = [
+    <span class="string">'CreateJobCommand'</span>,
+    <span class="string">'UpdateJobCommand'</span>,
+    <span class="string">'DeleteJobCommand'</span>,
+    <span class="string">'ApplyToJobCommand'</span>,
+    <span class="string">'UpdateApplicationStatusCommand'</span>,
+    <span class="string">'DeleteApplicationCommand'</span>,
+]</code></pre>
+        </section>
+
+        <section id="queries">
+            <h2>5. Queries - Read Operations</h2>
+
+            <h3>File: <code>cqrs/queries/job_queries.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Define data structures for job read operations</li>
+                    <li>Support various job listing scenarios</li>
+                    <li>Enable filtering by employer</li>
+                    <li>Optimize for employee job browsing with application status</li>
+                </ul>
+            </div>
+
+            <h4>Job Query Definitions</h4>
+
+            <pre><code><span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass
+<span class="keyword">from</span> typing <span class="keyword">import</span> Optional
+
+
+<span class="comment">"""
+Job-related query definitions.
+Queries represent read operations that don't modify state.
+"""</span>
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetAllJobsQuery</span>:
+    <span class="string">"""Query to get all job postings."""</span>
+    <span class="keyword">pass</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetJobByIdQuery</span>:
+    <span class="string">"""Query to get a specific job by ID."""</span>
+    job_id: <span class="class-name">int</span>
+    employee_id: Optional[<span class="class-name">str</span>] = <span class="keyword">None</span>  <span class="comment"># For has_applied flag</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetJobsByEmployerQuery</span>:
+    <span class="string">"""Query to get all jobs posted by a specific employer."""</span>
+    employer_id: <span class="class-name">str</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetAllJobsWithApplicationStatusQuery</span>:
+    <span class="string">"""Query to get all jobs with application status for an employee."""</span>
+    employee_id: <span class="class-name">str</span></code></pre>
+
+            <h3>File: <code>cqrs/queries/application_queries.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Define data structures for application read operations</li>
+                    <li>Support employer viewing applicants for their jobs</li>
+                    <li>Support employee viewing their application history</li>
+                    <li>Enable authorization checks through ID parameters</li>
+                </ul>
+            </div>
+
+            <h4>Application Query Definitions</h4>
+
+            <pre><code><span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass
+
+
+<span class="comment">"""
+Application-related query definitions.
+Queries represent read operations that don't modify state.
+"""</span>
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetApplicationsByJobQuery</span>:
+    <span class="string">"""Query to get all applications for a specific job."""</span>
+    job_id: <span class="class-name">int</span>
+    employer_id: <span class="class-name">str</span>
+
+
+<span class="keyword">@dataclass</span>
+<span class="keyword">class</span> <span class="class-name">GetApplicationsByEmployeeQuery</span>:
+    <span class="string">"""Query to get all applications submitted by an employee."""</span>
+    employee_id: <span class="class-name">str</span></code></pre>
+
+            <div class="info-box">
+                <h4>Query Optimization</h4>
+                <ul>
+                    <li><strong>GetAllJobsWithApplicationStatusQuery:</strong> Optimized single query for employee job browsing</li>
+                    <li><strong>GetApplicationsByJobQuery:</strong> Optimized for employer viewing all applicants</li>
+                    <li><strong>Authorization-Ready:</strong> Includes IDs for permission verification</li>
+                    <li><strong>Cacheable:</strong> Results can be cached for better performance</li>
+                </ul>
+            </div>
+
+            <h3>File: <code>cqrs/queries/__init__.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Export all query classes for easy importing</li>
+                    <li>Provide clean API for query consumers</li>
+                    <li>Centralize both job and application queries</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> .job_queries <span class="keyword">import</span> (
+    GetAllJobsQuery,
+    GetJobByIdQuery,
+    GetJobsByEmployerQuery,
+    GetAllJobsWithApplicationStatusQuery
+)
+<span class="keyword">from</span> .application_queries <span class="keyword">import</span> (
+    GetApplicationsByJobQuery,
+    GetApplicationsByEmployeeQuery
+)
+
+__all__ = [
+    <span class="string">'GetAllJobsQuery'</span>,
+    <span class="string">'GetJobByIdQuery'</span>,
+    <span class="string">'GetJobsByEmployerQuery'</span>,
+    <span class="string">'GetAllJobsWithApplicationStatusQuery'</span>,
+    <span class="string">'GetApplicationsByJobQuery'</span>,
+    <span class="string">'GetApplicationsByEmployeeQuery'</span>,
+]</code></pre>
+        </section>
+
+        <section id="handlers">
+            <h2>6. Handlers - Execution Layer</h2>
+
+            <h3>File: <code>cqrs/handlers/command_handlers.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Execute job and application commands</li>
+                    <li>Delegate to appropriate service layer</li>
+                    <li>Coordinate business logic execution</li>
+                    <li>Handle authorization and validation</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> typing <span class="keyword">import</span> Optional
+<span class="keyword">from</span> services <span class="keyword">import</span> JobService, JobApplicationService
+<span class="keyword">from</span> models <span class="keyword">import</span> Job, JobApplication
+
+
+<span class="keyword">class</span> <span class="class-name">JobCommandHandler</span>:
+    <span class="string">"""Handler for job-related commands."""</span>
+
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, service: JobService):
+        <span class="keyword">self</span>.service = service
+
+    <span class="keyword">def</span> <span class="function">handle_create_job</span>(<span class="keyword">self</span>, command: CreateJobCommand) -> Job:
+        <span class="string">"""Handle CreateJobCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.create_job(
+            employer_id=command.employer_id,
+            title=command.title,
+            description=command.description,
+            salary=command.salary,
+            skills=command.skills
+        )
+
+    <span class="keyword">def</span> <span class="function">handle_update_job</span>(<span class="keyword">self</span>, command: UpdateJobCommand) -> Optional[Job]:
+        <span class="string">"""Handle UpdateJobCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.update_job(
+            job_id=command.job_id,
+            employer_id=command.employer_id,
+            title=command.title,
+            description=command.description,
+            salary=command.salary,
+            skills=command.skills
+        )
+
+    <span class="keyword">def</span> <span class="function">handle_delete_job</span>(<span class="keyword">self</span>, command: DeleteJobCommand) -> <span class="class-name">bool</span>:
+        <span class="string">"""Handle DeleteJobCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.delete_job(
+            job_id=command.job_id,
+            employer_id=command.employer_id
+        )
+
+
+<span class="keyword">class</span> <span class="class-name">ApplicationCommandHandler</span>:
+    <span class="string">"""Handler for application-related commands."""</span>
+
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, service: JobApplicationService):
+        <span class="keyword">self</span>.service = service
+
+    <span class="keyword">def</span> <span class="function">handle_apply_to_job</span>(<span class="keyword">self</span>, command: ApplyToJobCommand) -> JobApplication:
+        <span class="string">"""Handle ApplyToJobCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.create_application(
+            job_id=command.job_id,
+            employee_id=command.employee_id,
+            cv_base64=command.cv_base64,
+            portfolio_url=command.portfolio_url,
+            cv_url=command.cv_url
+        )
+
+    <span class="keyword">def</span> <span class="function">handle_update_application_status</span>(<span class="keyword">self</span>, command: UpdateApplicationStatusCommand) -> Optional[JobApplication]:
+        <span class="string">"""Handle UpdateApplicationStatusCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.update_application_status(
+            application_id=command.application_id,
+            employer_id=command.employer_id,
+            status=command.status
+        )
+
+    <span class="keyword">def</span> <span class="function">handle_delete_application</span>(<span class="keyword">self</span>, command: DeleteApplicationCommand) -> <span class="class-name">bool</span>:
+        <span class="string">"""Handle DeleteApplicationCommand."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.delete_application(
+            application_id=command.application_id,
+            employer_id=command.employer_id
+        )</code></pre>
+
+            <h3>File: <code>cqrs/handlers/query_handlers.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Execute job and application queries</li>
+                    <li>Delegate to appropriate service layer</li>
+                    <li>Optimize query execution</li>
+                    <li>Return read-only data</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> typing <span class="keyword">import</span> List, Optional, Dict
+<span class="keyword">from</span> services <span class="keyword">import</span> JobService, JobApplicationService
+<span class="keyword">from</span> models <span class="keyword">import</span> Job, JobApplication
+
+
+<span class="keyword">class</span> <span class="class-name">JobQueryHandler</span>:
+    <span class="string">"""Handler for job-related queries."""</span>
+
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, service: JobService):
+        <span class="keyword">self</span>.service = service
+
+    <span class="keyword">def</span> <span class="function">handle_get_all_jobs</span>(<span class="keyword">self</span>, query: GetAllJobsQuery) -> List[Job]:
+        <span class="string">"""Handle GetAllJobsQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.get_all_jobs()
+
+    <span class="keyword">def</span> <span class="function">handle_get_job_by_id</span>(<span class="keyword">self</span>, query: GetJobByIdQuery) -> Optional[Job]:
+        <span class="string">"""Handle GetJobByIdQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.get_job(query.job_id)
+
+    <span class="keyword">def</span> <span class="function">handle_get_jobs_by_employer</span>(<span class="keyword">self</span>, query: GetJobsByEmployerQuery) -> List[Job]:
+        <span class="string">"""Handle GetJobsByEmployerQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.get_jobs_by_employer(query.employer_id)
+
+    <span class="keyword">def</span> <span class="function">handle_get_all_jobs_with_application_status</span>(<span class="keyword">self</span>, query: GetAllJobsWithApplicationStatusQuery) -> List[Dict]:
+        <span class="string">"""Handle GetAllJobsWithApplicationStatusQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.get_all_jobs_with_application_status(query.employee_id)
+
+
+<span class="keyword">class</span> <span class="class-name">ApplicationQueryHandler</span>:
+    <span class="string">"""Handler for application-related queries."""</span>
+
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, service: JobApplicationService):
+        <span class="keyword">self</span>.service = service
+
+    <span class="keyword">def</span> <span class="function">handle_get_applications_by_job</span>(<span class="keyword">self</span>, query: GetApplicationsByJobQuery) -> List[JobApplication]:
+        <span class="string">"""Handle GetApplicationsByJobQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.get_applications_by_job(
+            job_id=query.job_id,
+            employer_id=query.employer_id
+        )
+
+    <span class="keyword">def</span> <span class="function">handle_get_applications_by_employee</span>(<span class="keyword">self</span>, query: GetApplicationsByEmployeeQuery) -> List[JobApplication]:
+        <span class="string">"""Handle GetApplicationsByEmployeeQuery."""</span>
+        <span class="keyword">return</span> <span class="keyword">self</span>.service.get_applications_by_employee(query.employee_id)</code></pre>
+
+            <h3>File: <code>cqrs/handlers/__init__.py</code></h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility</h4>
+                <ul class="responsibility-list">
+                    <li>Export all handler classes</li>
+                    <li>Provide unified access to job and application handlers</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">from</span> .command_handlers <span class="keyword">import</span> JobCommandHandler, ApplicationCommandHandler
+<span class="keyword">from</span> .query_handlers <span class="keyword">import</span> JobQueryHandler, ApplicationQueryHandler
+
+__all__ = [
+    <span class="string">'JobCommandHandler'</span>,
+    <span class="string">'ApplicationCommandHandler'</span>,
+    <span class="string">'JobQueryHandler'</span>,
+    <span class="string">'ApplicationQueryHandler'</span>,
+]</code></pre>
+        </section>
+
+        <section id="integration">
+            <h2>7. Integration with Routes</h2>
+
+            <p>The routes layer integrates CQRS by creating command/query objects from HTTP requests and executing them through handlers.</p>
+
+            <h3>Factory Functions</h3>
+
+            <div class="responsibility-card">
+                <h4>Responsibility of Factory Functions</h4>
+                <ul class="responsibility-list">
+                    <li>Create database session</li>
+                    <li>Instantiate repositories with session</li>
+                    <li>Instantiate services with repositories</li>
+                    <li>Create command and query handlers with services</li>
+                    <li>Return handlers and session for cleanup</li>
+                </ul>
+            </div>
+
+            <pre><code><span class="keyword">def</span> <span class="function">get_job_handlers</span>():
+    <span class="string">"""Factory function for job CQRS handlers."""</span>
+    db = SessionLocal()
+    repository = JobRepository(db)
+    service = JobService(repository)
+    command_handler = JobCommandHandler(service)
+    query_handler = JobQueryHandler(service)
+    <span class="keyword">return</span> command_handler, query_handler, db
+
+
+<span class="keyword">def</span> <span class="function">get_application_handlers</span>():
+    <span class="string">"""Factory function for application CQRS handlers."""</span>
+    db = SessionLocal()
+    job_repository = JobRepository(db)
+    app_repository = JobApplicationRepository(db)
+    service = JobApplicationService(app_repository, job_repository)
+    command_handler = ApplicationCommandHandler(service)
+    query_handler = ApplicationQueryHandler(service)
+    <span class="keyword">return</span> command_handler, query_handler, db</code></pre>
+
+            <h3>Example: Create Job (Command)</h3>
+
+            <pre><code><span class="keyword">@jobs_bp.route</span>(<span class="string">"/api/jobs"</span>, methods=[<span class="string">"POST"</span>])
+<span class="keyword">def</span> <span class="function">create_job</span>():
+    <span class="string">"""Create a new job posting (Employer only) - COMMAND."""</span>
+    data = request.get_json()
+
+    <span class="comment"># Step 1: Create command object</span>
+    command = CreateJobCommand(
+        employer_id=data.get(<span class="string">"employer_id"</span>),
+        title=data.get(<span class="string">"title"</span>),
+        description=data.get(<span class="string">"description"</span>),
+        salary=data.get(<span class="string">"salary"</span>),
+        skills=data.get(<span class="string">"skills"</span>, [])
+    )
+
+    <span class="comment"># Step 2: Get handlers</span>
+    command_handler, _, db = get_job_handlers()
+
+    <span class="keyword">try</span>:
+        <span class="comment"># Step 3: Execute command</span>
+        job = command_handler.handle_create_job(command)
+        <span class="keyword">return</span> jsonify(job.to_dict()), <span class="class-name">201</span>
+    <span class="keyword">finally</span>:
+        db.close()</code></pre>
+
+            <h3>Example: Get All Jobs (Query)</h3>
+
+            <pre><code><span class="keyword">@jobs_bp.route</span>(<span class="string">"/api/jobs"</span>, methods=[<span class="string">"GET"</span>])
+<span class="keyword">def</span> <span class="function">get_all_jobs</span>():
+    <span class="string">"""Get all job postings (Public) - QUERY."""</span>
+    employee_id = request.args.get(<span class="string">"employee_id"</span>)
+
+    _, query_handler, db = get_job_handlers()
+
+    <span class="keyword">try</span>:
+        <span class="keyword">if</span> employee_id:
+            <span class="comment"># Query with application status for employee</span>
+            query = GetAllJobsWithApplicationStatusQuery(employee_id=employee_id)
+            jobs_with_status = query_handler.handle_get_all_jobs_with_application_status(query)
+            <span class="keyword">return</span> jsonify(jobs_with_status), <span class="class-name">200</span>
+        <span class="keyword">else</span>:
+            <span class="comment"># Query all jobs</span>
+            query = GetAllJobsQuery()
+            jobs = query_handler.handle_get_all_jobs(query)
+            <span class="keyword">return</span> jsonify([job.to_dict() <span class="keyword">for</span> job <span class="keyword">in</span> jobs]), <span class="class-name">200</span>
+    <span class="keyword">finally</span>:
+        db.close()</code></pre>
+
+            <h3>Example: Apply to Job (Command)</h3>
+
+            <pre><code><span class="keyword">@jobs_bp.route</span>(<span class="string">"/api/jobs/&lt;int:job_id&gt;/apply"</span>, methods=[<span class="string">"POST"</span>])
+<span class="keyword">def</span> <span class="function">apply_to_job</span>(job_id):
+    <span class="string">"""Apply to a job (Employee only) - COMMAND."""</span>
+    data = request.get_json()
+
+    <span class="comment"># Create command</span>
+    command = ApplyToJobCommand(
+        job_id=job_id,
+        employee_id=data.get(<span class="string">"employee_id"</span>),
+        cv_base64=data.get(<span class="string">"cv_base64"</span>),
+        portfolio_url=data.get(<span class="string">"portfolio_url"</span>),
+        cv_url=data.get(<span class="string">"cv_url"</span>)
+    )
+
+    <span class="comment"># Execute command</span>
+    command_handler, _, db = get_application_handlers()
+
+    <span class="keyword">try</span>:
+        application = command_handler.handle_apply_to_job(command)
+        <span class="keyword">return</span> jsonify(application.to_dict()), <span class="class-name">201</span>
+    <span class="keyword">finally</span>:
+        db.close()</code></pre>
+        </section>
+
+        <section id="flow">
+            <h2>8. Complete Flow Diagram</h2>
+
+            <h3>Command Flow (Write Operation)</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-box">HTTP POST/PUT/DELETE Request</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Route extracts data</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box command">Creates Command Object</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Factory creates handlers</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box handler">Command Handler executes</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box service">Service Layer processes</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Repository persists to DB</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Returns modified entity</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">HTTP Response (201/200)</div>
+            </div>
+
+            <h3>Query Flow (Read Operation)</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-box">HTTP GET Request</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Route extracts parameters</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box query">Creates Query Object</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Factory creates handlers</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box handler">Query Handler executes</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box service">Service retrieves data</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Returns data from DB</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">HTTP Response (200)</div>
+            </div>
+        </section>
+
+        <section id="relationships">
+            <h2>9. Component Relationships</h2>
+
+            <h3>Dependency Flow</h3>
+
+            <pre><code>Route Layer (routes.py)
+    ↓ uses
+Command/Query Objects (commands/*.py, queries/*.py)
+    ↓ passed to
+Handlers (handlers/*.py)
+    ↓ delegates to
+Service Layer (services.py)
+    ↓ uses
+Repository Layer (repositories.py)
+    ↓ accesses
+Database (via SQLAlchemy)</code></pre>
+
+            <h3>Component Interaction Table</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Creates/Uses</th>
+                        <th>Depends On</th>
+                        <th>Returns To</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Routes</strong></td>
+                        <td>Command/Query objects</td>
+                        <td>Handlers, Factory</td>
+                        <td>HTTP Client</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Factory Functions</strong></td>
+                        <td>Handlers, Services, Repositories</td>
+                        <td>Database Session</td>
+                        <td>Routes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Job Command Handler</strong></td>
+                        <td>JobService calls</td>
+                        <td>JobService</td>
+                        <td>Routes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Application Command Handler</strong></td>
+                        <td>JobApplicationService calls</td>
+                        <td>JobApplicationService</td>
+                        <td>Routes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Job Query Handler</strong></td>
+                        <td>JobService calls</td>
+                        <td>JobService</td>
+                        <td>Routes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Application Query Handler</strong></td>
+                        <td>JobApplicationService calls</td>
+                        <td>JobApplicationService</td>
+                        <td>Routes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Services</strong></td>
+                        <td>Business logic</td>
+                        <td>Repository</td>
+                        <td>Handlers</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Repositories</strong></td>
+                        <td>Database queries</td>
+                        <td>Database Session</td>
+                        <td>Services</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>How Components Complete Each Other</h3>
+
+            <div class="grid-2">
+                <div class="responsibility-card">
+                    <h4>Commands + Command Handlers</h4>
+                    <p>
+                        Job/Application Commands define <em>what</em> to do (the intention), while Command Handlers define <em>how</em> to do it (the execution). Each domain has its own handler for specialized logic.
+                    </p>
+                </div>
+
+                <div class="responsibility-card">
+                    <h4>Queries + Query Handlers</h4>
+                    <p>
+                        Job/Application Queries define <em>what data</em> to retrieve, while Query Handlers define <em>how</em> to retrieve it. Separate handlers allow for domain-specific optimizations.
+                    </p>
+                </div>
+
+                <div class="responsibility-card">
+                    <h4>Handlers + Service Layer</h4>
+                    <p>
+                        Handlers orchestrate the flow, while Services contain business logic. JobService handles job logic, JobApplicationService handles application logic including authorization.
+                    </p>
+                </div>
+
+                <div class="responsibility-card">
+                    <h4>Service + Repository</h4>
+                    <p>
+                        Services contain business rules, Repositories handle data persistence. The application service uses both JobRepository and JobApplicationRepository for cross-domain operations.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="benefits">
+            <h2>10. Benefits and Best Practices</h2>
+
+            <h3>Benefits of CQRS Implementation</h3>
+
+            <div class="success-box">
+                <h4>1. Domain Separation</h4>
+                <p>Jobs and Applications are clearly separated at the command/query level while sharing handler infrastructure.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>2. Authorization Integration</h4>
+                <p>Commands and queries include user IDs, making authorization checks straightforward and consistent.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>3. Optimized Queries</h4>
+                <p>Queries like GetAllJobsWithApplicationStatusQuery are optimized for specific use cases (employee job browsing).</p>
+            </div>
+
+            <div class="success-box">
+                <h4>4. Scalability</h4>
+                <p>Job listings (read-heavy) and applications (write-heavy) can be scaled independently.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>5. Clarity and Intent</h4>
+                <p>ApplyToJobCommand vs GetApplicationsByEmployeeQuery - names clearly express user intentions.</p>
+            </div>
+
+            <div class="success-box">
+                <h4>6. Testability</h4>
+                <p>Each handler can be tested independently with mock services. Commands and queries are simple to test.</p>
+            </div>
+
+            <h3>Best Practices</h3>
+
+            <div class="responsibility-card">
+                <h4>DO's</h4>
+                <ul class="responsibility-list">
+                    <li>Keep commands and queries as simple data structures</li>
+                    <li>Put authorization checks in the service layer</li>
+                    <li>Use descriptive names that express intent clearly</li>
+                    <li>Always close database sessions in finally blocks</li>
+                    <li>Keep handlers focused on orchestration, not logic</li>
+                    <li>Separate factory functions for different domains</li>
+                    <li>Include necessary IDs for authorization in commands/queries</li>
+                </ul>
+            </div>
+
+            <div class="responsibility-card">
+                <h4>DON'Ts</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't put business logic in command/query classes
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't mix job and application logic in the same handler
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't bypass handlers and call services directly from routes
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't skip authorization checks in commands
+                    </li>
+                    <li style="padding: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: #dc3545; font-weight: bold;">✗</span>
+                        Don't create commands/queries that violate single responsibility
+                    </li>
+                </ul>
+            </div>
+
+            <h3>Job Service Specific Considerations</h3>
+
+            <div class="warning-box">
+                <h4>Authorization Pattern</h4>
+                <p>
+                    <strong>Job Operations:</strong> Require employer_id to ensure only job owners can modify<br>
+                    <strong>Application Operations:</strong> Commands require employee_id (apply) or employer_id (status updates)<br>
+                    <strong>Queries:</strong> Include appropriate IDs to filter results by ownership
+                </p>
+            </div>
+
+            <div class="info-box">
+                <h4>CV Upload Flexibility</h4>
+                <p>
+                    ApplyToJobCommand supports three methods:
+                </p>
+                <ul>
+                    <li><strong>cv_base64:</strong> Direct base64 upload in request</li>
+                    <li><strong>cv_url:</strong> Reference to pre-uploaded file</li>
+                    <li><strong>portfolio_url:</strong> External portfolio link</li>
+                </ul>
+            </div>
+
+            <h3>Future Enhancements</h3>
+
+            <div class="info-box">
+                <h4>Potential Improvements</h4>
+                <ul>
+                    <li><strong>Event Sourcing:</strong> Track all job and application state changes</li>
+                    <li><strong>Caching:</strong> Cache job listings for better performance</li>
+                    <li><strong>Pagination:</strong> Add pagination support to GetAllJobsQuery</li>
+                    <li><strong>Search:</strong> Add SearchJobsQuery with filters (location, salary, skills)</li>
+                    <li><strong>Notifications:</strong> Emit events when application status changes</li>
+                    <li><strong>Audit Trail:</strong> Track who created/modified jobs and applications</li>
+                    <li><strong>Async Processing:</strong> Handle CV processing asynchronously</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 TalentLink - Job Service CQRS Documentation</p>
+            <p>Last Updated: December 6, 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        function exportToPDF() {
+            // Save original title
+            const originalTitle = document.title;
+
+            // Set PDF filename
+            document.title = 'Job-Service-CQRS-Documentation';
+
+            // Trigger browser's print dialog (Save as PDF)
+            window.print();
+
+            // Restore original title
+            document.title = originalTitle;
+        }
+    </script>
+</body>
+</html>

@@ -6,6 +6,18 @@ from flask import Blueprint, jsonify, request, send_from_directory
 from database import create_db_session
 from repositories import UserProfileRepository
 from services import UserProfileService
+from cqrs.handlers import UserCommandHandler, UserQueryHandler
+from cqrs.commands import (
+    CreateUserProfileCommand,
+    UpdateUserProfileCommand,
+    DeleteUserProfileCommand,
+    UploadProfilePictureCommand
+)
+from cqrs.queries import (
+    GetUserProfileByIdQuery,
+    GetUserProfileByUsernameQuery,
+    GetAllUserProfilesQuery
+)
 import os
 
 # Create blueprint
@@ -14,7 +26,7 @@ user_bp = Blueprint('users', __name__, url_prefix='/api/users')
 
 def get_service():
     """
-    Dependency injection helper.
+    Dependency injection helper (legacy - for debug endpoints).
     Creates service with repository dependency.
     Returns both service and db session for proper cleanup.
     """
@@ -22,6 +34,19 @@ def get_service():
     repository = UserProfileRepository(db)
     service = UserProfileService(repository)
     return service, db
+
+
+def get_handlers():
+    """
+    Factory function for user CQRS handlers.
+    Returns command handler, query handler, and db session for proper cleanup.
+    """
+    db = create_db_session()
+    repository = UserProfileRepository(db)
+    service = UserProfileService(repository)
+    command_handler = UserCommandHandler(service)
+    query_handler = UserQueryHandler(service)
+    return command_handler, query_handler, db
 
 
 @user_bp.route("/health", methods=["GET"])
@@ -216,7 +241,7 @@ def debug_profile(user_id):
 @user_bp.route("/profile", methods=["POST"])
 def create_profile():
     """
-    Create a new user profile.
+    Create a new user profile - COMMAND.
     Expected JSON body:
     {
         "user_id": "keycloak-user-id",
@@ -235,15 +260,22 @@ def create_profile():
         if missing:
             return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
 
-        service, db = get_service()
-        try:
-            profile = service.create_profile(
-                user_id=data["user_id"],
-                username=data["username"],
-                email=data["email"],
-                role=data["role"]
-            )
+        # Create command
+        command = CreateUserProfileCommand(
+            user_id=data["user_id"],
+            username=data["username"],
+            email=data["email"],
+            role=data["role"],
+            description=data.get("description"),
+            phone_number=data.get("phone_number"),
+            secondary_email=data.get("secondary_email"),
+            address=data.get("address")
+        )
 
+        # Execute command
+        command_handler, _, db = get_handlers()
+        try:
+            profile = command_handler.handle_create_profile(command)
             return jsonify(profile), 201
         finally:
             db.close()
@@ -257,11 +289,15 @@ def create_profile():
 
 @user_bp.route("/profile/<user_id>", methods=["GET"])
 def get_profile(user_id):
-    """Get user profile by ID."""
+    """Get user profile by ID - QUERY."""
     try:
-        service, db = get_service()
+        # Create query
+        query = GetUserProfileByIdQuery(user_id=user_id)
+
+        # Execute query
+        _, query_handler, db = get_handlers()
         try:
-            profile = service.get_profile(user_id)
+            profile = query_handler.handle_get_profile_by_id(query)
 
             if not profile:
                 return jsonify({"error": "Profile not found"}), 404
@@ -278,7 +314,7 @@ def get_profile(user_id):
 @user_bp.route("/profile/<user_id>", methods=["PUT", "PATCH"])
 def update_profile(user_id):
     """
-    Update user profile.
+    Update user profile - COMMAND.
     Expected JSON body (all fields optional):
     {
         "description": "About me...",
@@ -315,10 +351,22 @@ def update_profile(user_id):
             print(f"⚠️ Data dictionary is empty")
             return jsonify({"error": "No data provided"}), 400
 
-        service, db = get_service()
+        # Create command
+        command = UpdateUserProfileCommand(
+            user_id=user_id,
+            username=data.get("username"),
+            email=data.get("email"),
+            description=data.get("description"),
+            phone_number=data.get("phone_number"),
+            secondary_email=data.get("secondary_email"),
+            address=data.get("address")
+        )
+
+        # Execute command
+        command_handler, _, db = get_handlers()
         try:
-            print(f"🔄 Calling service.update_profile...")
-            profile = service.update_profile(user_id, data)
+            print(f"🔄 Calling command_handler.handle_update_profile...")
+            profile = command_handler.handle_update_profile(command)
 
             if not profile:
                 print(f"⚠️ Profile not found for user_id: {user_id}")
@@ -345,7 +393,7 @@ def update_profile(user_id):
 @user_bp.route("/profile/<user_id>/picture", methods=["POST"])
 def upload_profile_picture(user_id):
     """
-    Upload profile picture.
+    Upload profile picture - COMMAND.
     Expected JSON body:
     {
         "image": "base64-encoded-image-data"
@@ -358,9 +406,16 @@ def upload_profile_picture(user_id):
 
         print(f"📷 Uploading profile picture for user {user_id}")
 
-        service, db = get_service()
+        # Create command
+        command = UploadProfilePictureCommand(
+            user_id=user_id,
+            image_base64=data["image"]
+        )
+
+        # Execute command
+        command_handler, _, db = get_handlers()
         try:
-            url = service.upload_profile_picture(user_id, data["image"])
+            url = command_handler.handle_upload_profile_picture(command)
 
             if not url:
                 return jsonify({"error": "Failed to upload picture"}), 500
@@ -389,11 +444,15 @@ def serve_upload(filename):
 
 @user_bp.route("/profile/<user_id>", methods=["DELETE"])
 def delete_profile(user_id):
-    """Delete user profile."""
+    """Delete user profile - COMMAND."""
     try:
-        service, db = get_service()
+        # Create command
+        command = DeleteUserProfileCommand(user_id=user_id)
+
+        # Execute command
+        command_handler, _, db = get_handlers()
         try:
-            success = service.delete_profile(user_id)
+            success = command_handler.handle_delete_profile(command)
 
             if not success:
                 return jsonify({"error": "Profile not found"}), 404
