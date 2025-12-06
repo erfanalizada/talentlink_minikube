@@ -60,14 +60,19 @@ export const LoginScreen: React.FC = () => {
       try {
         await UserService.loadProfile(userId);
         console.log('Profile loaded successfully');
-      } catch (e) {
+      } catch (e: any) {
         console.log('Profile not found, creating new profile...');
-        await UserService.createProfile(userId, userName, email, userRole);
-        console.log('Profile created successfully');
+        try {
+          await UserService.createProfile(userId, userName, email, userRole);
+          console.log('Profile created successfully');
+        } catch (profileError: any) {
+          console.warn('Warning: Could not create profile on first login:', profileError);
+          // Don't fail login if profile creation fails - user can complete profile later
+        }
       }
 
-      // Navigate to home screen
-      navigate('/home');
+      // Navigate to home screen (replace prevents back to login)
+      navigate('/home', { replace: true });
     } catch (e: any) {
       console.error('Login error:', e);
       setError(e.message.replace('Error: ', ''));

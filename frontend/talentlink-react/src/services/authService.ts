@@ -25,7 +25,11 @@ export class AuthService {
       });
       return response.data;
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Login failed';
+      const message = 
+        error.response?.data?.error || 
+        error.message || 
+        'Login failed - please check your credentials';
+      console.error('AuthService login error:', error);
       throw new Error(message);
     }
   }
@@ -34,7 +38,11 @@ export class AuthService {
     try {
       await axios.post(`${BASE_URL}/register`, data);
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Registration failed';
+      const message = 
+        error.response?.data?.error || 
+        error.message || 
+        'Registration failed - please try again';
+      console.error('AuthService register error:', error);
       throw new Error(message);
     }
   }

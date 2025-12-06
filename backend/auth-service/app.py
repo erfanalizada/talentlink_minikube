@@ -1,4 +1,5 @@
 import os
+import requests
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from keycloak import KeycloakOpenID, KeycloakAdmin
@@ -6,7 +7,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, 
+     resources={r"/api/*": {
+         "origins": "*",
+         "methods": ["GET", "POST", "OPTIONS"],
+         "allow_headers": ["Content-Type", "Authorization"]
+     }}, 
+     supports_credentials=True)
 
 # ---------------- KEYCLOAK CONFIG ----------------
 KC_URL = os.getenv("KEYCLOAK_URL")  # IMPORTANT: no slash here
@@ -76,6 +83,35 @@ def register():
         print(f"👤 Assigning role '{role}' to user")
         kc_role = _get_role(role)
         admin.assign_realm_roles(user_id=user_id, roles=[kc_role])
+
+        # Create user profile in user-service
+        print(f"📋 Creating user profile in user-service for user_id: {user_id}")
+        try:
+            user_service_url = os.getenv("USER_SERVICE_URL", "http://user-service:5000")
+            profile_response = requests.post(
+                f"{user_service_url}/api/users/profile",
+                json={
+                    "user_id": user_id,
+                    "username": username,
+                    "email": email,
+                    "role": role,
+                    "description": data.get("description"),
+                    "phone_number": data.get("phone_number"),
+                    "secondary_email": data.get("secondary_email"),
+                    "address": data.get("address")
+                },
+                timeout=5
+            )
+
+            if profile_response.status_code == 201:
+                print(f"✅ User profile created successfully")
+            else:
+                print(f"⚠️ Warning: User profile creation failed with status {profile_response.status_code}")
+                print(f"Response: {profile_response.text}")
+        except Exception as profile_error:
+            print(f"⚠️ Warning: Could not create user profile: {str(profile_error)}")
+            # Don't fail registration if profile creation fails
+            pass
 
         print(f"✅ User '{username}' created successfully with ID: {user_id}")
         return jsonify({"message": f"User '{username}' created", "id": user_id}), 201
