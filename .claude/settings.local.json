@@ -16,7 +16,13 @@
       "Bash(find:*)",
       "Bash(dir:*)",
       "Bash(kubectl rollout:*)",
-      "Bash(kubectl exec:*)"
+      "Bash(kubectl exec:*)",
+      "Bash(minikube status:*)",
+      "Bash(minikube start:*)",
+      "Bash(kubectl describe:*)",
+      "Bash(curl:*)",
+      "Bash(kill:*)",
+      "Bash(kubectl delete:*)"
     ],
     "deny": [],
     "ask": []

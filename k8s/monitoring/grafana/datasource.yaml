@@ -4,7 +4,7 @@ metadata:
   name: grafana-datasources
   namespace: talentlink-local
 data:
-  prometheus.yaml: |-
+  datasources.yaml: |-
     apiVersion: 1
     datasources:
     - name: Prometheus
@@ -14,4 +14,12 @@ data:
       url: http://prometheus:9090
       basicAuth: false
       isDefault: true
+      editable: true
+    - name: Jaeger
+      type: jaeger
+      access: proxy
+      orgId: 1
+      url: http://jaeger:16686
+      basicAuth: false
+      isDefault: false
       editable: true

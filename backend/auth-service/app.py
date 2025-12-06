@@ -4,16 +4,50 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from keycloak import KeycloakOpenID, KeycloakAdmin
 from dotenv import load_dotenv
+from prometheus_flask_exporter import PrometheusMetrics
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.sdk.resources import Resource
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app, 
+CORS(app,
      resources={r"/api/*": {
          "origins": "*",
          "methods": ["GET", "POST", "OPTIONS"],
          "allow_headers": ["Content-Type", "Authorization"]
-     }}, 
+     }},
      supports_credentials=True)
+
+# Initialize Prometheus metrics
+metrics = PrometheusMetrics(app)
+metrics.info('auth_service_info', 'Auth Service with Keycloak', version='1.0.0')
+
+# Initialize Jaeger tracing
+jaeger_host = os.getenv('JAEGER_HOST', 'jaeger')
+jaeger_port = int(os.getenv('JAEGER_PORT', '6831'))
+
+resource = Resource.create({"service.name": "auth-service"})
+trace.set_tracer_provider(TracerProvider(resource=resource))
+
+jaeger_exporter = JaegerExporter(
+    agent_host_name=jaeger_host,
+    agent_port=jaeger_port,
+)
+
+trace.get_tracer_provider().add_span_processor(
+    BatchSpanProcessor(jaeger_exporter)
+)
+
+# Instrument Flask app
+FlaskInstrumentor().instrument_app(app)
+
+print("✅ Auth service initialized successfully")
+print(f"📊 Prometheus metrics available at /metrics")
+print(f"🔍 Jaeger tracing configured to {jaeger_host}:{jaeger_port}")
 
 # ---------------- KEYCLOAK CONFIG ----------------
 KC_URL = os.getenv("KEYCLOAK_URL")  # IMPORTANT: no slash here

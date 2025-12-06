@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app: auth-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: "/metrics"
     spec:
       imagePullSecrets:
         - name: ghcr-secret
@@ -52,6 +56,15 @@ spec:
 
             - name: KEYCLOAK_ADMIN_PASS
               value: "admin"
+
+            - name: JAEGER_HOST
+              value: "jaeger"
+
+            - name: JAEGER_PORT
+              value: "6831"
+
+            - name: USER_SERVICE_URL
+              value: "http://user-service:5000"
 
           # ---------------- HEALTH CHECKS ----------------
           readinessProbe:

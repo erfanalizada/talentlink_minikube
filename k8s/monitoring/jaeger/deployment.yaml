@@ -23,6 +23,12 @@ spec:
           value: ":9411"
         - name: COLLECTOR_OTLP_ENABLED
           value: "true"
+        - name: SPAN_STORAGE_TYPE
+          value: "elasticsearch"
+        - name: ES_SERVER_URLS
+          value: "http://elasticsearch:9200"
+        - name: ES_TAGS_AS_FIELDS_ALL
+          value: "true"
         ports:
         - containerPort: 5775
           protocol: UDP

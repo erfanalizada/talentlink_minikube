@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Stack Deployment Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin: -20px -20px 40px -20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .toc h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc ul li {
+            margin: 8px 0;
+        }
+
+        .toc ul li a {
+            color: #555;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc ul li a:hover {
+            color: #667eea;
+        }
+
+        section {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 5px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .error-box {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #abb2bf;
+        }
+
+        .flow-diagram {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flow-box {
+            background: #667eea;
+            color: white;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .flow-box.prometheus {
+            background: #e74c3c;
+        }
+
+        .flow-box.grafana {
+            background: #f39c12;
+        }
+
+        .flow-box.jaeger {
+            background: #3498db;
+        }
+
+        .flow-box.elasticsearch {
+            background: #00bfa5;
+        }
+
+        .flow-box.service {
+            background: #2ecc71;
+        }
+
+        .flow-arrow {
+            font-size: 2em;
+            color: #999;
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th,
+        table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .responsibility-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .responsibility-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .responsibility-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        ul.bullet-list {
+            padding-left: 20px;
+        }
+
+        ul.bullet-list li {
+            margin: 8px 0;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            margin: 40px -20px -20px -20px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Monitoring Stack Deployment</h1>
+            <p>Complete Observability Solution for TalentLink Platform</p>
+            <span class="status-badge">✓ FULLY OPERATIONAL</span>
+        </header>
+
+        <nav class="toc">
+            <h2>📑 Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">1. Overview</a></li>
+                <li><a href="#problems-fixed">2. Problems Resolved</a></li>
+                <li><a href="#storage-architecture">3. Storage Architecture & Database Configuration</a></li>
+                <li><a href="#components">4. Monitoring Components</a></li>
+                <li><a href="#instrumentation">5. Service Instrumentation</a></li>
+                <li><a href="#persistence">6. Data Persistence Configuration</a></li>
+                <li><a href="#access">7. Accessing the Monitoring Tools</a></li>
+                <li><a href="#testing">8. Testing & Verification</a></li>
+                <li><a href="#queries">9. Useful Prometheus Queries</a></li>
+            </ul>
+        </nav>
+
+        <section id="overview">
+            <h2>1. Overview</h2>
+            <p>
+                The TalentLink platform now features a complete observability stack comprising Prometheus for metrics collection,
+                Grafana for visualization, Jaeger for distributed tracing, and Elasticsearch for persistent trace storage.
+                This deployment resolves critical issues that prevented the monitoring tools from collecting and displaying data.
+            </p>
+
+            <div class="info-box">
+                <h4>🎯 Deployment Objective</h4>
+                <p>
+                    Implement a production-ready monitoring and observability solution with persistent storage,
+                    ensuring all application metrics and traces are collected, stored, and accessible for analysis.
+                </p>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-box service">Application Services</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box prometheus">Prometheus</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box grafana">Grafana</div>
+                <br>
+                <div class="flow-box service">Application Services</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box jaeger">Jaeger</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box elasticsearch">Elasticsearch</div>
+            </div>
+        </section>
+
+        <section id="problems-fixed">
+            <h2>2. Problems Resolved</h2>
+
+            <div class="error-box">
+                <h4>⚠️ Critical Issues Identified</h4>
+                <ul class="bullet-list">
+                    <li><strong>Port Mismatch:</strong> Prometheus configured to scrape services on port 3000, but all services run on port 5000</li>
+                    <li><strong>Missing Instrumentation:</strong> auth-service lacked Prometheus and Jaeger instrumentation</li>
+                    <li><strong>Missing Metrics Endpoint:</strong> user-service and job-service had Flask debug mode issues preventing metrics exposure</li>
+                    <li><strong>Ephemeral Storage:</strong> All monitoring data was stored in-memory or emptyDir volumes, causing data loss on pod restarts</li>
+                </ul>
+            </div>
+
+            <div class="success-box">
+                <h4>✅ Solutions Implemented</h4>
+                <ul class="responsibility-list">
+                    <li>Updated Prometheus scrape configuration to target port 5000 for all services</li>
+                    <li>Added complete Prometheus and Jaeger instrumentation to auth-service</li>
+                    <li>Fixed Flask application initialization to properly expose metrics endpoints</li>
+                    <li>Deployed persistent volumes for Prometheus (10GB), Grafana (2GB), and Elasticsearch (5GB)</li>
+                    <li>Configured Jaeger to use Elasticsearch as persistent storage backend</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="storage-architecture">
+            <h2>3. Storage Architecture & Database Configuration</h2>
+
+            <div class="info-box">
+                <h4>❓ Question Answered: Do We Need Database Instances?</h4>
+                <p>
+                    Each monitoring tool has different storage requirements. Here's the complete breakdown of what database
+                    instances are needed and why:
+                </p>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>Storage Type</th>
+                        <th>Volume Size</th>
+                        <th>External Database</th>
+                        <th>Rationale</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Prometheus</strong></td>
+                        <td>Internal TSDB</td>
+                        <td>10GB PVC</td>
+                        <td>❌ Not Required</td>
+                        <td>Uses its own time-series database optimized for metrics</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Grafana</strong></td>
+                        <td>Internal SQLite</td>
+                        <td>2GB PVC</td>
+                        <td>❌ Not Required</td>
+                        <td>Stores dashboards and configs in embedded SQLite database</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Jaeger</strong></td>
+                        <td>Elasticsearch</td>
+                        <td>5GB PVC</td>
+                        <td>✅ Elasticsearch</td>
+                        <td>Requires external storage; Elasticsearch is optimal for trace data</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Elasticsearch</strong></td>
+                        <td>Internal Storage</td>
+                        <td>5GB PVC</td>
+                        <td>-</td>
+                        <td>Stores Jaeger traces with built-in indexing and search</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning-box">
+                <h4>🔍 Why Elasticsearch for Jaeger?</h4>
+                <p>
+                    While Jaeger supports multiple storage backends (Cassandra, Elasticsearch, PostgreSQL, Memory),
+                    <strong>Elasticsearch was chosen</strong> for the following reasons:
+                </p>
+                <ul class="bullet-list">
+                    <li><strong>Optimized for Time-Series Data:</strong> Elasticsearch excels at storing and querying time-stamped trace data</li>
+                    <li><strong>Better Query Performance:</strong> Full-text search and complex queries perform significantly better than RDBMS alternatives</li>
+                    <li><strong>Horizontal Scalability:</strong> Easy to scale by adding more Elasticsearch nodes</li>
+                    <li><strong>Production Standard:</strong> Recommended by Jaeger for production deployments</li>
+                    <li><strong>Automatic Index Management:</strong> Built-in index lifecycle management for trace retention</li>
+                </ul>
+            </div>
+
+            <h3>3.1 Persistent Volume Configuration</h3>
+            <pre><code># Prometheus PVC (10GB for metrics time-series data)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+  namespace: talentlink-local
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+# Grafana PVC (2GB for dashboards and configuration)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+  namespace: talentlink-local
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+# Elasticsearch PVC (5GB for Jaeger traces)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-pvc
+  namespace: talentlink-local
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi</code></pre>
+        </section>
+
+        <section id="components">
+            <h2>4. Monitoring Components</h2>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>📊 Prometheus</h4>
+                    <p><strong>Purpose:</strong> Metrics collection and storage</p>
+                    <p><strong>Port:</strong> 9090 (NodePort: 30090)</p>
+                    <p><strong>Storage:</strong> 10GB persistent volume</p>
+                    <p><strong>Features:</strong></p>
+                    <ul class="responsibility-list">
+                        <li>Scrapes metrics from 6 services every 15 seconds</li>
+                        <li>Stores time-series data in internal TSDB</li>
+                        <li>Provides PromQL query language</li>
+                        <li>Built-in alerting capabilities</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>📈 Grafana</h4>
+                    <p><strong>Purpose:</strong> Metrics and trace visualization</p>
+                    <p><strong>Port:</strong> 3000 (NodePort: 30300)</p>
+                    <p><strong>Storage:</strong> 2GB persistent volume</p>
+                    <p><strong>Features:</strong></p>
+                    <ul class="responsibility-list">
+                        <li>Connected to Prometheus for metrics</li>
+                        <li>Connected to Jaeger for traces</li>
+                        <li>Dashboard persistence enabled</li>
+                        <li>Login: admin/admin</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>🔍 Jaeger</h4>
+                    <p><strong>Purpose:</strong> Distributed tracing</p>
+                    <p><strong>Port:</strong> 16686 (Query UI)</p>
+                    <p><strong>Storage:</strong> Elasticsearch backend</p>
+                    <p><strong>Features:</strong></p>
+                    <ul class="responsibility-list">
+                        <li>Collects traces via OpenTelemetry</li>
+                        <li>Stores traces in Elasticsearch</li>
+                        <li>Service dependency visualization</li>
+                        <li>Trace search and analysis</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>💾 Elasticsearch</h4>
+                    <p><strong>Purpose:</strong> Trace storage backend</p>
+                    <p><strong>Port:</strong> 9200 (HTTP), 9300 (Transport)</p>
+                    <p><strong>Storage:</strong> 5GB persistent volume</p>
+                    <p><strong>Features:</strong></p>
+                    <ul class="responsibility-list">
+                        <li>Single-node deployment for development</li>
+                        <li>Persistent trace storage</li>
+                        <li>Full-text search capabilities</li>
+                        <li>Automatic index management</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>4.1 Component Health Status</h3>
+            <pre><code># Check all monitoring pods
+$ kubectl get pods -n talentlink-local | grep -E 'prometheus|grafana|jaeger|elasticsearch'
+
+NAME                             READY   STATUS    RESTARTS   AGE
+elasticsearch-66f555c748-d6blx   1/1     Running   0          13m
+grafana-86dd84558c-ksv74         1/1     Running   1          10m
+jaeger-86c7f8dd64-p9fnm          1/1     Running   1          10m
+prometheus-58784888fc-qkcl5      1/1     Running   1          10m</code></pre>
+        </section>
+
+        <section id="instrumentation">
+            <h2>5. Service Instrumentation</h2>
+
+            <p>
+                All microservices in the TalentLink platform are now instrumented with both Prometheus metrics
+                and Jaeger distributed tracing capabilities.
+            </p>
+
+            <h3>5.1 Instrumented Services</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Metrics Endpoint</th>
+                        <th>Jaeger Integration</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>user-service</strong></td>
+                        <td>http://user-service:5000/metrics</td>
+                        <td>✅ OpenTelemetry</td>
+                        <td><span style="color: #28a745;">✓ Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>job-service</strong></td>
+                        <td>http://job-service:5000/metrics</td>
+                        <td>✅ OpenTelemetry</td>
+                        <td><span style="color: #28a745;">✓ Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>auth-service</strong></td>
+                        <td>http://auth-service:5000/metrics</td>
+                        <td>✅ OpenTelemetry</td>
+                        <td><span style="color: #28a745;">✓ Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>matching-service</strong></td>
+                        <td>http://matching-service:5000/metrics</td>
+                        <td>✅ OpenTelemetry</td>
+                        <td><span style="color: #28a745;">✓ Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>notification-service</strong></td>
+                        <td>http://notification-service:5000/metrics</td>
+                        <td>✅ OpenTelemetry</td>
+                        <td><span style="color: #28a745;">✓ Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>cv-service</strong></td>
+                        <td>http://cv-service:5000/metrics</td>
+                        <td>✅ OpenTelemetry</td>
+                        <td><span style="color: #28a745;">✓ Active</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>5.2 Instrumentation Code Example</h3>
+            <pre><code># Python Flask Service Instrumentation (user-service example)
+from prometheus_flask_exporter import PrometheusMetrics
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.sdk.resources import Resource
+
+# Initialize Prometheus metrics
+metrics = PrometheusMetrics(app)
+metrics.info('user_service_info', 'User Service with CQRS', version='1.0.0')
+
+# Initialize Jaeger tracing
+resource = Resource.create({"service.name": "user-service"})
+trace.set_tracer_provider(TracerProvider(resource=resource))
+
+jaeger_exporter = JaegerExporter(
+    agent_host_name='jaeger',
+    agent_port=6831,
+)
+
+trace.get_tracer_provider().add_span_processor(
+    BatchSpanProcessor(jaeger_exporter)
+)
+
+# Instrument Flask app
+FlaskInstrumentor().instrument_app(app)</code></pre>
+
+            <h3>5.3 Prometheus Scrape Configuration</h3>
+            <pre><code># Prometheus Configuration for Service Discovery
+scrape_configs:
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:5000']
+        labels:
+          service: 'user-service'
+
+  - job_name: 'job-service'
+    static_configs:
+      - targets: ['job-service:5000']
+        labels:
+          service: 'job-service'
+
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:5000']
+        labels:
+          service: 'auth-service'
+
+  # ... additional services</code></pre>
+        </section>
+
+        <section id="persistence">
+            <h2>6. Data Persistence Configuration</h2>
+
+            <div class="success-box">
+                <h4>🎉 Data Persistence Now Active</h4>
+                <p>
+                    All monitoring data is now stored on persistent volumes. Metrics, dashboards, and traces will survive pod restarts,
+                    deployments, and cluster maintenance operations.
+                </p>
+            </div>
+
+            <h3>6.1 Persistent Volume Status</h3>
+            <pre><code>$ kubectl get pvc -n talentlink-local | grep -E 'prometheus|grafana|elasticsearch'
+
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES
+elasticsearch-pvc   Bound    pvc-849e872a-758f-4fed-8556-c4dc9028bef7   5Gi        RWO
+grafana-pvc         Bound    pvc-6618ce5c-2f63-40f2-aaf2-5f87caec731c   2Gi        RWO
+prometheus-pvc      Bound    pvc-cac0dfb0-8b70-43a7-9541-486fc6a4e602   10Gi       RWO</code></pre>
+
+            <h3>6.2 Data Retention Policies</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Data Type</th>
+                        <th>Retention Period</th>
+                        <th>Storage Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Prometheus</td>
+                        <td>Metrics Time-Series</td>
+                        <td>15 days (default)</td>
+                        <td>/prometheus (10GB PVC)</td>
+                    </tr>
+                    <tr>
+                        <td>Grafana</td>
+                        <td>Dashboards & Config</td>
+                        <td>Permanent</td>
+                        <td>/var/lib/grafana (2GB PVC)</td>
+                    </tr>
+                    <tr>
+                        <td>Elasticsearch</td>
+                        <td>Jaeger Traces</td>
+                        <td>7 days (configurable)</td>
+                        <td>/usr/share/elasticsearch/data (5GB PVC)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box">
+                <h4>💡 Retention Configuration</h4>
+                <p>
+                    Retention periods can be adjusted based on storage capacity and compliance requirements.
+                    Prometheus retention is configured via <code>--storage.tsdb.retention.time</code> flag.
+                    Elasticsearch retention is managed through index lifecycle policies.
+                </p>
+            </div>
+        </section>
+
+        <section id="access">
+            <h2>7. Accessing the Monitoring Tools</h2>
+
+            <h3>7.1 Start Minikube Tunnel</h3>
+            <p>To access the monitoring tools via their ingress hostnames, run the following command in a separate terminal:</p>
+            <pre><code>$ minikube tunnel</code></pre>
+
+            <h3>7.2 Access URLs</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>URL</th>
+                        <th>Credentials</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Prometheus</strong></td>
+                        <td><code>http://prometheus.local</code></td>
+                        <td>None required</td>
+                        <td>Metrics query and target status</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Grafana</strong></td>
+                        <td><code>http://grafana.local</code></td>
+                        <td>admin / admin</td>
+                        <td>Dashboard visualization</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Jaeger</strong></td>
+                        <td><code>http://jaeger.local</code></td>
+                        <td>None required</td>
+                        <td>Trace search and analysis</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning-box">
+                <h4>⚠️ Host Configuration Required</h4>
+                <p>
+                    If ingress hostnames don't resolve automatically, add the following entries to your <code>/etc/hosts</code>
+                    (or <code>C:\Windows\System32\drivers\etc\hosts</code> on Windows):
+                </p>
+                <pre><code>127.0.0.1  prometheus.local
+127.0.0.1  grafana.local
+127.0.0.1  jaeger.local</code></pre>
+            </div>
+
+            <h3>7.3 Alternative Access via NodePort</h3>
+            <p>If you prefer not to use ingress, access the tools directly via NodePort:</p>
+            <pre><code>$ minikube ip
+# Output: 192.168.49.2 (example)
+
+# Access URLs:
+http://192.168.49.2:30090  # Prometheus
+http://192.168.49.2:30300  # Grafana</code></pre>
+        </section>
+
+        <section id="testing">
+            <h2>8. Testing & Verification</h2>
+
+            <h3>8.1 Verification Steps</h3>
+            <div class="success-box">
+                <h4>✅ Complete Verification Checklist</h4>
+                <ul class="responsibility-list">
+                    <li><strong>Step 1:</strong> Generate application activity (create accounts, login, update profiles, post jobs)</li>
+                    <li><strong>Step 2:</strong> Check Prometheus targets at Status → Targets (all should show "UP")</li>
+                    <li><strong>Step 3:</strong> Query metrics in Prometheus Graph view</li>
+                    <li><strong>Step 4:</strong> Verify metrics in Grafana Explore interface</li>
+                    <li><strong>Step 5:</strong> Search for traces in Jaeger UI</li>
+                    <li><strong>Step 6:</strong> Restart a pod and confirm data persistence</li>
+                </ul>
+            </div>
+
+            <h3>8.2 Testing Prometheus Metrics Collection</h3>
+            <pre><code># 1. Check Prometheus targets status
+Navigate to: http://prometheus.local/targets
+
+# Expected: All services show State="UP"
+
+# 2. Test a simple query in Prometheus Graph
+up{job="user-service"}
+
+# Expected: Returns 1 (service is up)
+
+# 3. Check HTTP request metrics
+rate(http_requests_total[5m])
+
+# Expected: Shows request rate per second for all services</code></pre>
+
+            <h3>8.3 Testing Grafana Dashboards</h3>
+            <pre><code># 1. Login to Grafana
+URL: http://grafana.local
+Credentials: admin / admin
+
+# 2. Navigate to Explore
+Click "Explore" in left sidebar
+
+# 3. Select Prometheus datasource
+Choose "Prometheus" from datasource dropdown
+
+# 4. Run a query
+Enter: sum by (service) (rate(http_requests_total[5m]))
+
+# Expected: Chart showing request rates per service</code></pre>
+
+            <h3>8.4 Testing Jaeger Traces</h3>
+            <pre><code># 1. Access Jaeger UI
+URL: http://jaeger.local
+
+# 2. Search for traces
+- Service: Select "user-service"
+- Operation: Select "all"
+- Click "Find Traces"
+
+# Expected: List of traces showing recent API calls
+
+# 3. View trace details
+Click on any trace to see:
+- Request timeline
+- Service dependencies
+- Individual span details
+- Tags and logs</code></pre>
+
+            <h3>8.5 Testing Data Persistence</h3>
+            <pre><code># 1. Record current metric value
+$ kubectl exec -n talentlink-local deployment/prometheus -- \
+  wget -qO- http://localhost:9090/api/v1/query?query=up
+
+# 2. Restart Prometheus pod
+$ kubectl delete pod -l app=prometheus -n talentlink-local
+
+# 3. Wait for pod to be ready
+$ kubectl wait --for=condition=ready pod -l app=prometheus \
+  -n talentlink-local --timeout=120s
+
+# 4. Verify data is still present
+Navigate to Prometheus UI and check historical data
+
+# Expected: All historical metrics remain intact</code></pre>
+        </section>
+
+        <section id="queries">
+            <h2>9. Useful Prometheus Queries</h2>
+
+            <h3>9.1 Service Health Queries</h3>
+            <pre><code># Check if all services are up
+up
+
+# Count number of running services
+count(up == 1)
+
+# Check service uptime
+(time() - process_start_time_seconds{job="user-service"})</code></pre>
+
+            <h3>9.2 HTTP Request Metrics</h3>
+            <pre><code># Total HTTP requests per service
+sum by (service) (http_requests_total)
+
+# Request rate (requests per second)
+rate(http_requests_total[5m])
+
+# Request rate by HTTP status code
+sum by (status) (rate(http_requests_total[5m]))
+
+# Error rate (5xx responses)
+sum(rate(http_requests_total{status=~"5.."}[5m])) /
+sum(rate(http_requests_total[5m]))</code></pre>
+
+            <h3>9.3 Performance Metrics</h3>
+            <pre><code># 95th percentile request duration
+histogram_quantile(0.95,
+  rate(http_request_duration_seconds_bucket[5m]))
+
+# Average request duration by service
+avg by (service) (rate(http_request_duration_seconds_sum[5m]) /
+                  rate(http_request_duration_seconds_count[5m]))
+
+# Requests per minute
+sum(rate(http_requests_total[1m])) * 60</code></pre>
+
+            <h3>9.4 Resource Utilization</h3>
+            <pre><code># Memory usage
+process_resident_memory_bytes
+
+# CPU time
+rate(process_cpu_seconds_total[5m])
+
+# Active threads
+python_gc_objects_collected_total</code></pre>
+
+            <h3>9.5 Database Queries</h3>
+            <pre><code># Database query count
+sum by (service) (rate(sqlalchemy_queries_total[5m]))
+
+# Database query duration
+histogram_quantile(0.95,
+  rate(sqlalchemy_query_duration_seconds_bucket[5m]))</code></pre>
+
+            <div class="info-box">
+                <h4>💡 Query Best Practices</h4>
+                <ul class="bullet-list">
+                    <li>Use rate() for counter metrics to get per-second rates</li>
+                    <li>Use histogram_quantile() for latency percentiles</li>
+                    <li>Use sum by (label) to aggregate across dimensions</li>
+                    <li>Use range vectors (e.g., [5m]) for time-based calculations</li>
+                    <li>Combine queries with logical operators (and, or, unless)</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p><strong>TalentLink Monitoring Stack Documentation</strong></p>
+            <p>Deployed: December 2025 | Version 1.0</p>
+            <p style="margin-top: 10px;">
+                Prometheus 📊 • Grafana 📈 • Jaeger 🔍 • Elasticsearch 💾
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

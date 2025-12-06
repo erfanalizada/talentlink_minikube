@@ -27,7 +27,17 @@ class UserProfileService:
         self.upload_dir = os.getenv("UPLOAD_DIR", "/app/uploads")
         os.makedirs(self.upload_dir, exist_ok=True)
 
-    def create_profile(self, user_id: str, username: str, email: str, role: str) -> Dict[str, Any]:
+    def create_profile(
+        self,
+        user_id: str,
+        username: str,
+        email: str,
+        role: str,
+        description: Optional[str] = None,
+        phone_number: Optional[str] = None,
+        secondary_email: Optional[str] = None,
+        address: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Create a new user profile.
         Business rule: Validate role before creation.
@@ -43,6 +53,21 @@ class UserProfileService:
             raise ValueError(f"Profile already exists for user_id: {user_id}")
 
         profile = self.repository.create(user_id, username, email, user_role)
+
+        # Update profile with optional fields if provided
+        if any([description, phone_number, secondary_email, address]):
+            update_data = {}
+            if description:
+                update_data['description'] = description
+            if phone_number:
+                update_data['phone_number'] = phone_number
+            if secondary_email:
+                update_data['secondary_email'] = secondary_email
+            if address:
+                update_data['address'] = address
+
+            profile = self.repository.update(user_id, update_data)
+
         return profile.to_dict()
 
     def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:

@@ -72,36 +72,36 @@ data:
       # Talentlink services with explicit targets
       - job_name: 'user-service'
         static_configs:
-          - targets: ['user-service:3000']
+          - targets: ['user-service:5000']
             labels:
               service: 'user-service'
 
       - job_name: 'job-service'
         static_configs:
-          - targets: ['job-service:3000']
+          - targets: ['job-service:5000']
             labels:
               service: 'job-service'
 
       - job_name: 'auth-service'
         static_configs:
-          - targets: ['auth-service:3000']
+          - targets: ['auth-service:5000']
             labels:
               service: 'auth-service'
 
       - job_name: 'cv-service'
         static_configs:
-          - targets: ['cv-service:3000']
+          - targets: ['cv-service:5000']
             labels:
               service: 'cv-service'
 
       - job_name: 'matching-service'
         static_configs:
-          - targets: ['matching-service:3000']
+          - targets: ['matching-service:5000']
             labels:
               service: 'matching-service'
 
       - job_name: 'notification-service'
         static_configs:
-          - targets: ['notification-service:3000']
+          - targets: ['notification-service:5000']
             labels:
               service: 'notification-service'

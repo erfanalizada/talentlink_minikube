@@ -59,5 +59,7 @@ print("✅ Job service initialized successfully")
 print(f"📊 Prometheus metrics available at /metrics")
 print(f"🔍 Jaeger tracing configured to {jaeger_host}:{jaeger_port}")
 
+# Note: app is already created at module level above
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)
