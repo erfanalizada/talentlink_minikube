@@ -129,7 +129,10 @@ class JobApplicationService:
             )
             if response.status_code == 200:
                 data = response.json()
-                return data.get("profile")
+                # User-service returns profile dict directly, not wrapped
+                return data
+            else:
+                print(f"⚠️ Warning: User profile fetch returned status {response.status_code} for {user_id}")
             return None
         except Exception as e:
             print(f"⚠️ Warning: Could not fetch user profile for {user_id}: {e}")

@@ -1,6 +1,7 @@
 """
 Routes layer for HTTP endpoints.
 Single Responsibility: Handles HTTP request/response mapping.
+Uses CQRS pattern to separate read (queries) from write (commands) operations.
 """
 from flask import Blueprint, request, jsonify, send_from_directory, current_app
 from werkzeug.exceptions import BadRequest
@@ -9,44 +10,59 @@ import os
 from database import SessionLocal
 from repositories import JobRepository, JobApplicationRepository
 from services import JobService, JobApplicationService
+from cqrs.handlers import JobCommandHandler, ApplicationCommandHandler, JobQueryHandler, ApplicationQueryHandler
+from cqrs.commands import CreateJobCommand, UpdateJobCommand, DeleteJobCommand, ApplyToJobCommand, UpdateApplicationStatusCommand
+from cqrs.queries import GetAllJobsQuery, GetJobByIdQuery, GetJobsByEmployerQuery, GetAllJobsWithApplicationStatusQuery, GetApplicationsByJobQuery, GetApplicationsByEmployeeQuery
 
 jobs_bp = Blueprint('jobs', __name__)
 
 
-def get_job_service():
-    """Factory function for job service."""
+def get_job_handlers():
+    """Factory function for job CQRS handlers."""
     db = SessionLocal()
     repository = JobRepository(db)
-    return JobService(repository), db
+    service = JobService(repository)
+    command_handler = JobCommandHandler(service)
+    query_handler = JobQueryHandler(service)
+    return command_handler, query_handler, db
 
 
-def get_application_service():
-    """Factory function for application service."""
+def get_application_handlers():
+    """Factory function for application CQRS handlers."""
     db = SessionLocal()
     job_repository = JobRepository(db)
     app_repository = JobApplicationRepository(db)
-    return JobApplicationService(app_repository, job_repository), db
+    service = JobApplicationService(app_repository, job_repository)
+    command_handler = ApplicationCommandHandler(service)
+    query_handler = ApplicationQueryHandler(service)
+    return command_handler, query_handler, db
 
 
 # Job endpoints
 
 @jobs_bp.route("/api/jobs", methods=["POST"])
 def create_job():
-    """Create a new job posting (Employer only)."""
+    """Create a new job posting (Employer only) - COMMAND."""
     try:
         data = request.get_json()
         employer_id = data.get("employer_id")
-        title = data.get("title")
-        description = data.get("description")
-        salary = data.get("salary")
-        skills = data.get("skills", [])
 
         if not employer_id:
             return jsonify({"error": "employer_id is required"}), 400
 
-        service, db = get_job_service()
+        # Create command
+        command = CreateJobCommand(
+            employer_id=employer_id,
+            title=data.get("title"),
+            description=data.get("description"),
+            salary=data.get("salary"),
+            skills=data.get("skills", [])
+        )
+
+        # Execute command
+        command_handler, _, db = get_job_handlers()
         try:
-            job = service.create_job(employer_id, title, description, salary, skills)
+            job = command_handler.handle_create_job(command)
             return jsonify(job.to_dict()), 201
         finally:
             db.close()
@@ -60,21 +76,23 @@ def create_job():
 @jobs_bp.route("/api/jobs", methods=["GET"])
 def get_all_jobs():
     """
-    Get all job postings (Public).
+    Get all job postings (Public) - QUERY.
     Optional query parameter: employee_id - if provided, includes has_applied flag
     """
     try:
         employee_id = request.args.get("employee_id")
 
-        service, db = get_job_service()
+        _, query_handler, db = get_job_handlers()
         try:
             if employee_id:
-                # Return jobs with application status for employee
-                jobs_with_status = service.get_all_jobs_with_application_status(employee_id)
+                # Query with application status for employee
+                query = GetAllJobsWithApplicationStatusQuery(employee_id=employee_id)
+                jobs_with_status = query_handler.handle_get_all_jobs_with_application_status(query)
                 return jsonify(jobs_with_status), 200
             else:
-                # Return all jobs without application status
-                jobs = service.get_all_jobs()
+                # Query all jobs
+                query = GetAllJobsQuery()
+                jobs = query_handler.handle_get_all_jobs(query)
                 return jsonify([job.to_dict() for job in jobs]), 200
         finally:
             db.close()
@@ -86,15 +104,18 @@ def get_all_jobs():
 @jobs_bp.route("/api/jobs/<int:job_id>", methods=["GET"])
 def get_job(job_id):
     """
-    Get a specific job by ID.
+    Get a specific job by ID - QUERY.
     Optional query parameter: employee_id - if provided, includes has_applied flag
     """
     try:
         employee_id = request.args.get("employee_id")
 
-        service, db = get_job_service()
+        _, query_handler, db = get_job_handlers()
         try:
-            job = service.get_job(job_id)
+            # Execute query
+            query = GetJobByIdQuery(job_id=job_id, employee_id=employee_id)
+            job = query_handler.handle_get_job_by_id(query)
+
             if not job:
                 return jsonify({"error": "Job not found"}), 404
 
@@ -117,11 +138,13 @@ def get_job(job_id):
 
 @jobs_bp.route("/api/jobs/employer/<employer_id>", methods=["GET"])
 def get_jobs_by_employer(employer_id):
-    """Get all jobs posted by a specific employer."""
+    """Get all jobs posted by a specific employer - QUERY."""
     try:
-        service, db = get_job_service()
+        _, query_handler, db = get_job_handlers()
         try:
-            jobs = service.get_jobs_by_employer(employer_id)
+            # Execute query
+            query = GetJobsByEmployerQuery(employer_id=employer_id)
+            jobs = query_handler.handle_get_jobs_by_employer(query)
             return jsonify([job.to_dict() for job in jobs]), 200
         finally:
             db.close()
@@ -131,7 +154,7 @@ def get_jobs_by_employer(employer_id):
 
 @jobs_bp.route("/api/jobs/<int:job_id>", methods=["PUT", "PATCH"])
 def update_job(job_id):
-    """Update a job posting (Owner only)."""
+    """Update a job posting (Owner only) - COMMAND."""
     try:
         data = request.get_json()
         employer_id = data.get("employer_id")
@@ -142,16 +165,20 @@ def update_job(job_id):
 
         current_app.logger.info(f"Updating job {job_id} by employer {employer_id}")
 
-        service, db = get_job_service()
+        # Create command
+        command = UpdateJobCommand(
+            job_id=job_id,
+            employer_id=employer_id,
+            title=data.get("title"),
+            description=data.get("description"),
+            salary=data.get("salary"),
+            skills=data.get("skills")
+        )
+
+        # Execute command
+        command_handler, _, db = get_job_handlers()
         try:
-            job = service.update_job(
-                job_id,
-                employer_id,
-                title=data.get("title"),
-                description=data.get("description"),
-                salary=data.get("salary"),
-                skills=data.get("skills")
-            )
+            job = command_handler.handle_update_job(command)
             if not job:
                 current_app.logger.warning(f"Job {job_id} not found for update")
                 return jsonify({"error": "Job not found"}), 404
@@ -176,7 +203,7 @@ def update_job(job_id):
 
 @jobs_bp.route("/api/jobs/<int:job_id>", methods=["DELETE"])
 def delete_job(job_id):
-    """Delete a job posting (Owner only)."""
+    """Delete a job posting (Owner only) - COMMAND."""
     try:
         data = request.get_json() if request.data else {}
         employer_id = data.get("employer_id")
@@ -187,9 +214,13 @@ def delete_job(job_id):
 
         current_app.logger.info(f"Deleting job {job_id} by employer {employer_id}")
 
-        service, db = get_job_service()
+        # Create command
+        command = DeleteJobCommand(job_id=job_id, employer_id=employer_id)
+
+        # Execute command
+        command_handler, _, db = get_job_handlers()
         try:
-            success = service.delete_job(job_id, employer_id)
+            success = command_handler.handle_delete_job(command)
             if not success:
                 current_app.logger.warning(f"Job {job_id} not found for deletion")
                 return jsonify({"error": "Job not found"}), 404
@@ -213,7 +244,7 @@ def delete_job(job_id):
 
 @jobs_bp.route("/api/jobs/<int:job_id>/apply", methods=["POST"])
 def apply_to_job(job_id):
-    """Apply to a job (Employee only)."""
+    """Apply to a job (Employee only) - COMMAND."""
     try:
         # Support both JSON (base64 CV) and multipart/form-data (file upload)
         if request.content_type and request.content_type.startswith('multipart/form-data'):
@@ -237,10 +268,19 @@ def apply_to_job(job_id):
             cv_file.save(filepath)
             cv_url = f"/api/jobs/uploads/cvs/{filename}"
 
-            service, db = get_application_service()
+            # Create command
+            command = ApplyToJobCommand(
+                job_id=job_id,
+                employee_id=employee_id,
+                cv_base64=None,
+                portfolio_url=portfolio_url,
+                cv_url=cv_url
+            )
+
+            # Execute command
+            command_handler, _, db = get_application_handlers()
             try:
-                # Pass cv_url to service which will accept an already-saved file
-                application = service.create_application(job_id, employee_id, cv_base64=None, portfolio_url=portfolio_url, cv_url=cv_url)
+                application = command_handler.handle_apply_to_job(command)
                 return jsonify(application.to_dict()), 201
             finally:
                 db.close()
@@ -272,9 +312,19 @@ def apply_to_job(job_id):
             if not cv_base64:
                 return jsonify({"error": "cv is required"}), 400
 
-            service, db = get_application_service()
+            # Create command
+            command = ApplyToJobCommand(
+                job_id=job_id,
+                employee_id=employee_id,
+                cv_base64=cv_base64,
+                portfolio_url=portfolio_url,
+                cv_url=None
+            )
+
+            # Execute command
+            command_handler, _, db = get_application_handlers()
             try:
-                application = service.create_application(job_id, employee_id, cv_base64, portfolio_url)
+                application = command_handler.handle_apply_to_job(command)
                 return jsonify(application.to_dict()), 201
             finally:
                 db.close()
@@ -287,15 +337,17 @@ def apply_to_job(job_id):
 
 @jobs_bp.route("/api/jobs/<int:job_id>/applications", methods=["GET"])
 def get_job_applications(job_id):
-    """Get all applications for a specific job (Employer only)."""
+    """Get all applications for a specific job (Employer only) - QUERY."""
     try:
         employer_id = request.args.get("employer_id")
         if not employer_id:
             return jsonify({"error": "employer_id is required"}), 400
 
-        service, db = get_application_service()
+        # Execute query
+        query = GetApplicationsByJobQuery(job_id=job_id, employer_id=employer_id)
+        _, query_handler, db = get_application_handlers()
         try:
-            applications = service.get_applications_by_job(job_id, employer_id)
+            applications = query_handler.handle_get_applications_by_job(query)
             return jsonify([app.to_dict() for app in applications]), 200
         finally:
             db.close()
@@ -310,11 +362,13 @@ def get_job_applications(job_id):
 
 @jobs_bp.route("/api/applications/employee/<employee_id>", methods=["GET"])
 def get_employee_applications(employee_id):
-    """Get all applications submitted by an employee."""
+    """Get all applications submitted by an employee - QUERY."""
     try:
-        service, db = get_application_service()
+        # Execute query
+        query = GetApplicationsByEmployeeQuery(employee_id=employee_id)
+        _, query_handler, db = get_application_handlers()
         try:
-            applications = service.get_applications_by_employee(employee_id)
+            applications = query_handler.handle_get_applications_by_employee(query)
             return jsonify([app.to_dict() for app in applications]), 200
         finally:
             db.close()
@@ -324,7 +378,7 @@ def get_employee_applications(employee_id):
 
 @jobs_bp.route("/api/applications/<int:application_id>/status", methods=["PUT", "PATCH"])
 def update_application_status(application_id):
-    """Update the status of an application (Employer only)."""
+    """Update the status of an application (Employer only) - COMMAND."""
     try:
         data = request.get_json()
         employer_id = data.get("employer_id")
@@ -335,9 +389,17 @@ def update_application_status(application_id):
         if not status:
             return jsonify({"error": "status is required"}), 400
 
-        service, db = get_application_service()
+        # Create command
+        command = UpdateApplicationStatusCommand(
+            application_id=application_id,
+            employer_id=employer_id,
+            status=status
+        )
+
+        # Execute command
+        command_handler, _, db = get_application_handlers()
         try:
-            application = service.update_application_status(application_id, employer_id, status)
+            application = command_handler.handle_update_application_status(command)
             if not application:
                 return jsonify({"error": "Application not found"}), 404
             return jsonify(application.to_dict()), 200
