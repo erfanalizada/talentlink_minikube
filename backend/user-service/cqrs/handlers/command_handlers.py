@@ -24,9 +24,9 @@ class UserCommandHandler:
     def handle_create_profile(self, command: CreateUserProfileCommand) -> UserProfile:
         """
         Handle CreateUserProfileCommand.
-        Creates a new user profile.
+        Creates a new user profile and publishes UserCreated event.
         """
-        return self.service.create_profile(
+        profile = self.service.create_profile(
             user_id=command.user_id,
             username=command.username,
             email=command.email,
@@ -37,10 +37,15 @@ class UserCommandHandler:
             address=command.address
         )
 
+        # Publish UserCreated event
+        self._publish_user_created_event(profile, command.user_id)
+
+        return profile
+
     def handle_update_profile(self, command: UpdateUserProfileCommand) -> Optional[UserProfile]:
         """
         Handle UpdateUserProfileCommand.
-        Updates an existing user profile.
+        Updates an existing user profile and publishes UserUpdated event.
         """
         # Build update dictionary from non-None values
         updates = {}
@@ -57,7 +62,13 @@ class UserCommandHandler:
         if command.address is not None:
             updates['address'] = command.address
 
-        return self.service.update_profile(command.user_id, updates)
+        profile = self.service.update_profile(command.user_id, updates)
+
+        # Publish UserUpdated event if update was successful
+        if profile:
+            self._publish_user_updated_event(profile, command.user_id, updates)
+
+        return profile
 
     def handle_delete_profile(self, command: DeleteUserProfileCommand) -> bool:
         """
@@ -78,6 +89,91 @@ class UserCommandHandler:
             self._publish_user_deleted_event(user_profile, command.user_id)
 
         return success
+
+    def _publish_user_created_event(self, user_profile, created_by_user_id):
+        """
+        Publish UserCreated event to event store and RabbitMQ.
+        """
+        if not self.db_session:
+            from flask import current_app
+            current_app.logger.warning("⚠️ Cannot publish event: no database session provided")
+            return
+
+        try:
+            # Create event publisher
+            publisher = EventPublisher(self.db_session)
+
+            # Prepare event data
+            event_data = {
+                "user_id": user_profile['user_id'],
+                "username": user_profile['username'],
+                "email": user_profile['email'],
+                "role": user_profile['role'],
+                "description": user_profile.get('description'),
+                "phone_number": user_profile.get('phone_number'),
+                "secondary_email": user_profile.get('secondary_email'),
+                "address": user_profile.get('address'),
+                "created_at": user_profile.get('created_at')
+            }
+
+            # Publish event
+            publisher.publish_event(
+                event_type="UserCreated",
+                aggregate_id=user_profile['user_id'],
+                aggregate_type="UserProfile",
+                event_data=event_data,
+                user_id=created_by_user_id
+            )
+
+            from flask import current_app
+            current_app.logger.info(f"✅ Published UserCreated event for user {user_profile['user_id']}")
+
+        except Exception as e:
+            from flask import current_app
+            current_app.logger.error(f"❌ Failed to publish UserCreated event: {e}")
+
+    def _publish_user_updated_event(self, user_profile, updated_by_user_id, changes):
+        """
+        Publish UserUpdated event to event store and RabbitMQ.
+        """
+        if not self.db_session:
+            from flask import current_app
+            current_app.logger.warning("⚠️ Cannot publish event: no database session provided")
+            return
+
+        try:
+            # Create event publisher
+            publisher = EventPublisher(self.db_session)
+
+            # Prepare event data
+            event_data = {
+                "user_id": user_profile['user_id'],
+                "username": user_profile['username'],
+                "email": user_profile['email'],
+                "role": user_profile['role'],
+                "description": user_profile.get('description'),
+                "phone_number": user_profile.get('phone_number'),
+                "secondary_email": user_profile.get('secondary_email'),
+                "address": user_profile.get('address'),
+                "updated_at": user_profile.get('updated_at'),
+                "changes": changes  # Include what fields were changed
+            }
+
+            # Publish event
+            publisher.publish_event(
+                event_type="UserUpdated",
+                aggregate_id=user_profile['user_id'],
+                aggregate_type="UserProfile",
+                event_data=event_data,
+                user_id=updated_by_user_id
+            )
+
+            from flask import current_app
+            current_app.logger.info(f"✅ Published UserUpdated event for user {user_profile['user_id']}")
+
+        except Exception as e:
+            from flask import current_app
+            current_app.logger.error(f"❌ Failed to publish UserUpdated event: {e}")
 
     def _publish_user_deleted_event(self, user_profile, deleted_by_user_id):
         """
@@ -112,6 +208,9 @@ class UserCommandHandler:
                 event_data=event_data,
                 user_id=deleted_by_user_id
             )
+
+            from flask import current_app
+            current_app.logger.info(f"✅ Published UserDeleted event for user {user_profile['user_id']}")
 
         except Exception as e:
             from flask import current_app
