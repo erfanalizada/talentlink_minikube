@@ -22,7 +22,8 @@
       "Bash(kubectl describe:*)",
       "Bash(curl:*)",
       "Bash(kill:*)",
-      "Bash(kubectl delete:*)"
+      "Bash(kubectl delete:*)",
+      "Bash(xargs cat:*)"
     ],
     "deny": [],
     "ask": []

@@ -159,4 +159,30 @@ export class UserService {
       throw new Error(error.response?.data?.error || 'Failed to upload profile picture');
     }
   }
+
+  static async deleteProfile(userId: string): Promise<void> {
+    try {
+      console.log('🗑️ UserService.deleteProfile called');
+      console.log('🗑️ URL:', `${BASE_URL}/profile/${userId}`);
+
+      const token = TokenStorage.getAccessToken();
+      console.log('🗑️ Token exists:', !!token);
+
+      const response = await axios.delete(
+        `${BASE_URL}/profile/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log('🗑️ Response status:', response.status);
+      console.log('✅ Profile deleted successfully');
+    } catch (error: any) {
+      console.error('🗑️ Delete error:', error);
+      console.error('🗑️ Error response:', error.response?.data);
+      throw new Error(error.response?.data?.error || 'Failed to delete profile');
+    }
+  }
 }

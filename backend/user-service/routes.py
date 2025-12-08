@@ -44,7 +44,7 @@ def get_handlers():
     db = create_db_session()
     repository = UserProfileRepository(db)
     service = UserProfileService(repository)
-    command_handler = UserCommandHandler(service)
+    command_handler = UserCommandHandler(service, db_session=db)
     query_handler = UserQueryHandler(service)
     return command_handler, query_handler, db
 

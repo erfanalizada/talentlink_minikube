@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event-Driven Architecture with RabbitMQ - Talentlink Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        header {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin: -20px -20px 40px -20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border-left: 4px solid #FF6B35;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .toc h2 {
+            color: #FF6B35;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc ul li {
+            margin: 8px 0;
+        }
+
+        .toc ul li a {
+            color: #555;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc ul li a:hover {
+            color: #FF6B35;
+        }
+
+        section {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            color: #FF6B35;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #FF6B35;
+        }
+
+        h3 {
+            color: #F7931E;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 5px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #FF6B35;
+        }
+
+        .feature-card h4 {
+            color: #FF6B35;
+            margin-bottom: 10px;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #abb2bf;
+        }
+
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+        .function { color: #61afef; }
+        .class-name { color: #e5c07b; }
+        .number { color: #d19a66; }
+
+        .flow-diagram {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .flow-box {
+            background: #FF6B35;
+            color: white;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            min-width: 200px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .flow-box.rabbitmq {
+            background: #FF6600;
+        }
+
+        .flow-box.notification {
+            background: #28a745;
+        }
+
+        .flow-box.database {
+            background: #2196F3;
+        }
+
+        .flow-arrow {
+            display: block;
+            font-size: 2em;
+            margin: 10px 0;
+            color: #666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #FF6B35;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        ul {
+            margin: 15px 0 15px 40px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .architecture-diagram {
+            background: white;
+            border: 2px solid #FF6B35;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .component {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .component.event-store {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .component.rabbitmq {
+            background: linear-gradient(135deg, #FF6600 0%, #FF8533 100%);
+        }
+
+        .component.notification {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin: 40px -20px -20px -20px;
+        }
+
+        .file-structure {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .file-structure .folder {
+            color: #61afef;
+        }
+
+        .file-structure .file {
+            color: #98c379;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐰 Event-Driven Architecture with RabbitMQ</h1>
+            <p>Asynchronous Messaging & Event Sourcing Implementation for Talentlink</p>
+        </header>
+
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#architecture">2. System Architecture</a></li>
+                <li><a href="#components">3. Components Overview</a></li>
+                <li><a href="#event-sourcing">4. Event Sourcing Implementation</a></li>
+                <li><a href="#rabbitmq">5. RabbitMQ Configuration</a></li>
+                <li><a href="#notification">6. Notification Service</a></li>
+                <li><a href="#user-deletion">7. User Deletion Service (GDPR)</a></li>
+                <li><a href="#deployment">8. Kubernetes Deployment</a></li>
+                <li><a href="#testing">9. Testing the Implementation</a></li>
+                <li><a href="#benefits">10. Benefits & Trade-offs</a></li>
+                <li><a href="#next-steps">11. Future Enhancements</a></li>
+            </ul>
+        </nav>
+
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+
+            <p>
+                This document describes the implementation of an event-driven architecture using RabbitMQ for the Talentlink job application platform.
+                The implementation follows a hybrid communication strategy combining synchronous REST APIs for user-facing operations with asynchronous
+                event-driven messaging for background tasks and cross-service workflows.
+            </p>
+
+            <div class="success-box">
+                <strong>Implementation Completed:</strong> RabbitMQ message broker deployed with event sourcing and pub/sub pattern for two key features:
+                <ul style="margin-top: 10px;">
+                    <li><strong>Application Acceptance Notifications:</strong> Async email notifications to employees</li>
+                    <li><strong>User Account Deletion (GDPR):</strong> Cross-service user cleanup from Keycloak and databases</li>
+                </ul>
+            </div>
+
+            <h3>Why Event-Driven Architecture?</h3>
+
+            <p>
+                Traditional synchronous service-to-service communication creates tight coupling and can lead to cascading failures. Event-driven
+                architecture solves these problems by:
+            </p>
+
+            <ul>
+                <li><strong>Decoupling services:</strong> Services communicate through events without knowing about each other</li>
+                <li><strong>Asynchronous processing:</strong> Non-critical tasks run in background without blocking user requests</li>
+                <li><strong>Scalability:</strong> Services can scale independently based on their workload</li>
+                <li><strong>Resilience:</strong> Failures in one service don't cascade to others</li>
+                <li><strong>Audit trail:</strong> Event sourcing provides complete history of all system changes</li>
+            </ul>
+
+            <h3>Use Case: Application Acceptance Notification</h3>
+
+            <p>
+                When an employer accepts a job application, we need to:
+            </p>
+            <ol>
+                <li>Update the application status in the database</li>
+                <li>Send an email notification to the employee</li>
+                <li>Store an event for audit purposes</li>
+            </ol>
+
+            <p>
+                Instead of making the HTTP request wait for email sending (slow and blocking), we publish an event that triggers the notification
+                asynchronously. This keeps the API fast and responsive while ensuring reliable notification delivery.
+            </p>
+        </section>
+
+        <section id="architecture">
+            <h2>2. System Architecture</h2>
+
+            <h3>Hybrid Communication Strategy</h3>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Synchronous REST/RPC</h4>
+                    <p>Used for core user-facing operations requiring immediate response:</p>
+                    <ul>
+                        <li>User login & authentication</li>
+                        <li>Browsing jobs</li>
+                        <li>Submitting applications</li>
+                        <li>Fetching profile data</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Asynchronous Messaging</h4>
+                    <p>Used for side-effects and background tasks:</p>
+                    <ul>
+                        <li>Sending email notifications</li>
+                        <li>Processing uploaded CVs</li>
+                        <li>Cleanup tasks</li>
+                        <li>Analytics pipelines</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Event-Driven + Event Sourcing</h4>
+                    <p>Used for domain events and audit trail:</p>
+                    <ul>
+                        <li>Application status changes</li>
+                        <li>Job postings lifecycle</li>
+                        <li>User account changes</li>
+                        <li>Cross-service workflows</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Complete Flow Diagram</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-box">Employer accepts application<br/>(PATCH /api/applications/{id}/status)</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">Job-Service Command Handler</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box database">1. Update application status in PostgreSQL</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box database">2. Store ApplicationAccepted event in event store</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box rabbitmq">3. Publish event to RabbitMQ<br/>(exchange: talentlink.events, key: application.accepted)</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box rabbitmq">RabbitMQ routes event to notification queue</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box notification">Notification-Service Event Consumer</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box notification">1. Receive ApplicationAccepted event<br/>2. Fetch job details<br/>3. Send email to employee</div>
+            </div>
+
+            <div class="info-box">
+                <strong>Key Principle:</strong> The job-service immediately returns a successful response to the employer after updating the database.
+                Email sending happens asynchronously in the background, ensuring a fast and responsive user experience.
+            </div>
+        </section>
+
+        <section id="components">
+            <h2>3. Components Overview</h2>
+
+            <h3>RabbitMQ Message Broker</h3>
+            <p>
+                RabbitMQ is a robust message broker that implements AMQP (Advanced Message Queuing Protocol). It acts as a central hub for
+                event distribution across microservices.
+            </p>
+
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Description</th>
+                    <th>Configuration</th>
+                </tr>
+                <tr>
+                    <td><strong>Exchange</strong></td>
+                    <td>Topic exchange for event routing</td>
+                    <td>Name: <code>talentlink.events</code><br/>Type: topic<br/>Durable: true</td>
+                </tr>
+                <tr>
+                    <td><strong>Queue</strong></td>
+                    <td>Queue for notification service</td>
+                    <td>Name: <code>notification.application.accepted</code><br/>Durable: true</td>
+                </tr>
+                <tr>
+                    <td><strong>Routing Key</strong></td>
+                    <td>Pattern for event routing</td>
+                    <td><code>application.accepted</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Credentials</strong></td>
+                    <td>Authentication</td>
+                    <td>User: talentlink<br/>Pass: talentlink123</td>
+                </tr>
+            </table>
+
+            <h3>Event Sourcing Store</h3>
+            <p>
+                The event store is a dedicated database table that persists all domain events. This provides:
+            </p>
+            <ul>
+                <li><strong>Complete audit trail:</strong> Every state change is recorded with timestamp and user info</li>
+                <li><strong>Event replay:</strong> Ability to rebuild state by replaying events</li>
+                <li><strong>Debugging:</strong> Full history for troubleshooting issues</li>
+                <li><strong>Analytics:</strong> Source of truth for business intelligence</li>
+            </ul>
+
+            <div class="file-structure">
+<span class="comment">-- Event Store Table Schema</span>
+<span class="keyword">CREATE TABLE</span> events (
+    event_id <span class="keyword">INTEGER PRIMARY KEY AUTOINCREMENT</span>,
+    event_type <span class="keyword">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">NOT NULL</span>,
+    aggregate_id <span class="keyword">VARCHAR</span>(<span class="number">255</span>) <span class="keyword">NOT NULL</span>,
+    aggregate_type <span class="keyword">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">NOT NULL</span>,
+    event_data <span class="keyword">JSON NOT NULL</span>,
+    user_id <span class="keyword">VARCHAR</span>(<span class="number">255</span>),
+    timestamp <span class="keyword">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>,
+    version <span class="keyword">INTEGER DEFAULT</span> <span class="number">1</span>,
+    <span class="keyword">INDEX</span> idx_event_type (event_type),
+    <span class="keyword">INDEX</span> idx_aggregate (aggregate_id)
+);
+            </div>
+        </section>
+
+        <section id="event-sourcing">
+            <h2>4. Event Sourcing Implementation</h2>
+
+            <h3>Event Publisher (job-service)</h3>
+
+            <p>
+                The <code>event_publisher.py</code> module handles both event persistence and publishing to RabbitMQ.
+                This ensures that events are never lost even if RabbitMQ is temporarily unavailable.
+            </p>
+
+            <h4>File: backend/job-service/event_publisher.py</h4>
+
+<pre><code><span class="keyword">class</span> <span class="class-name">EventPublisher</span>:
+    <span class="string">"""Publishes domain events to RabbitMQ and event store."""</span>
+
+    <span class="keyword">def</span> <span class="function">publish_event</span>(<span class="keyword">self</span>, event_type, aggregate_id,
+                       aggregate_type, event_data, user_id=<span class="keyword">None</span>):
+        <span class="string">"""
+        Publish event to both event store and RabbitMQ.
+
+        Steps:
+        1. Store event in database (event store)
+        2. Publish to RabbitMQ topic exchange
+        """</span>
+
+        <span class="comment"># 1. Store event in event store (database)</span>
+        event = Event(
+            event_type=event_type,
+            aggregate_id=<span class="function">str</span>(aggregate_id),
+            aggregate_type=aggregate_type,
+            event_data=event_data,
+            user_id=user_id,
+            version=<span class="number">1</span>
+        )
+        <span class="keyword">self</span>.db_session.<span class="function">add</span>(event)
+        <span class="keyword">self</span>.db_session.<span class="function">commit</span>()
+
+        <span class="comment"># 2. Publish event to RabbitMQ</span>
+        <span class="keyword">self</span>.<span class="function">_publish_to_rabbitmq</span>(event_type, event.<span class="function">to_dict</span>())
+
+        <span class="keyword">return</span> event
+</code></pre>
+
+            <h3>Command Handler Integration</h3>
+
+            <p>
+                The <code>ApplicationCommandHandler</code> in the CQRS layer is responsible for executing commands and publishing events.
+            </p>
+
+            <h4>File: backend/job-service/cqrs/handlers/command_handlers.py</h4>
+
+<pre><code><span class="keyword">class</span> <span class="class-name">ApplicationCommandHandler</span>:
+    <span class="keyword">def</span> <span class="function">handle_update_application_status</span>(<span class="keyword">self</span>, command):
+        <span class="string">"""Update application status and publish event if accepted."""</span>
+
+        <span class="comment"># Update application status</span>
+        application = <span class="keyword">self</span>.service.<span class="function">update_application_status</span>(
+            application_id=command.application_id,
+            employer_id=command.employer_id,
+            status=command.status
+        )
+
+        <span class="comment"># If application was accepted, publish ApplicationAccepted event</span>
+        <span class="keyword">if</span> application <span class="keyword">and</span> application.status == ApplicationStatus.ACCEPTED:
+            <span class="keyword">self</span>.<span class="function">_publish_application_accepted_event</span>(
+                application,
+                command.employer_id
+            )
+
+        <span class="keyword">return</span> application
+
+    <span class="keyword">def</span> <span class="function">_publish_application_accepted_event</span>(<span class="keyword">self</span>, application, employer_id):
+        <span class="string">"""Publish ApplicationAccepted event to event store and RabbitMQ."""</span>
+        publisher = <span class="class-name">EventPublisher</span>(<span class="keyword">self</span>.db_session)
+
+        event_data = {
+            <span class="string">"application_id"</span>: application.application_id,
+            <span class="string">"job_id"</span>: application.job_id,
+            <span class="string">"employee_id"</span>: application.employee_id,
+            <span class="string">"employee_email"</span>: application.employee_email,
+            <span class="string">"employee_username"</span>: application.employee_username,
+            <span class="string">"employer_id"</span>: employer_id,
+            <span class="string">"status"</span>: application.status.value,
+            <span class="string">"accepted_at"</span>: application.updated_at.<span class="function">isoformat</span>()
+        }
+
+        publisher.<span class="function">publish_event</span>(
+            event_type=<span class="string">"ApplicationAccepted"</span>,
+            aggregate_id=application.application_id,
+            aggregate_type=<span class="string">"JobApplication"</span>,
+            event_data=event_data,
+            user_id=employer_id
+        )
+</code></pre>
+
+            <div class="warning-box">
+                <strong>Important Design Decision:</strong> Even if RabbitMQ publishing fails, the event is already saved in the event store.
+                A separate recovery process could later republish events from the store to RabbitMQ.
+            </div>
+        </section>
+
+        <section id="rabbitmq">
+            <h2>5. RabbitMQ Configuration</h2>
+
+            <h3>Kubernetes Deployment</h3>
+
+            <p>
+                RabbitMQ is deployed as a StatefulSet in the Kubernetes cluster with the management UI enabled for monitoring.
+            </p>
+
+            <h4>File: k8s/backend/rabbitmq/deployment.yaml</h4>
+
+<pre><code><span class="keyword">apiVersion:</span> apps/v1
+<span class="keyword">kind:</span> Deployment
+<span class="keyword">metadata:</span>
+  <span class="keyword">name:</span> rabbitmq
+  <span class="keyword">namespace:</span> talentlink-local
+<span class="keyword">spec:</span>
+  <span class="keyword">replicas:</span> <span class="number">1</span>
+  <span class="keyword">template:</span>
+    <span class="keyword">spec:</span>
+      <span class="keyword">containers:</span>
+      - <span class="keyword">name:</span> rabbitmq
+        <span class="keyword">image:</span> rabbitmq:<span class="number">3.13</span>-management-alpine
+        <span class="keyword">ports:</span>
+        - <span class="keyword">containerPort:</span> <span class="number">5672</span>   <span class="comment"># AMQP protocol</span>
+          <span class="keyword">name:</span> amqp
+        - <span class="keyword">containerPort:</span> <span class="number">15672</span>  <span class="comment"># Management UI</span>
+          <span class="keyword">name:</span> management
+        <span class="keyword">env:</span>
+        - <span class="keyword">name:</span> RABBITMQ_DEFAULT_USER
+          <span class="keyword">value:</span> <span class="string">"talentlink"</span>
+        - <span class="keyword">name:</span> RABBITMQ_DEFAULT_PASS
+          <span class="keyword">value:</span> <span class="string">"talentlink123"</span>
+</code></pre>
+
+            <h3>Topic Exchange Pattern</h3>
+
+            <p>
+                We use a <strong>topic exchange</strong> instead of direct or fanout exchanges because it provides flexible routing with patterns:
+            </p>
+
+            <ul>
+                <li><code>application.accepted</code> - Specific event type</li>
+                <li><code>application.*</code> - All application events</li>
+                <li><code>*.accepted</code> - All acceptance events</li>
+                <li><code>#</code> - All events (wildcard)</li>
+            </ul>
+
+            <div class="info-box">
+                <strong>Future Extensibility:</strong> New services can easily subscribe to specific event patterns without modifying existing code.
+                For example, an analytics service could subscribe to <code>#</code> to receive all events.
+            </div>
+
+            <h3>Connection Configuration</h3>
+
+            <p>Services connect to RabbitMQ using these environment variables:</p>
+
+            <table>
+                <tr>
+                    <th>Environment Variable</th>
+                    <th>Default Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>RABBITMQ_HOST</code></td>
+                    <td>rabbitmq</td>
+                    <td>RabbitMQ service hostname (Kubernetes DNS)</td>
+                </tr>
+                <tr>
+                    <td><code>RABBITMQ_PORT</code></td>
+                    <td>5672</td>
+                    <td>AMQP protocol port</td>
+                </tr>
+                <tr>
+                    <td><code>RABBITMQ_USER</code></td>
+                    <td>talentlink</td>
+                    <td>Authentication username</td>
+                </tr>
+                <tr>
+                    <td><code>RABBITMQ_PASS</code></td>
+                    <td>talentlink123</td>
+                    <td>Authentication password</td>
+                </tr>
+            </table>
+        </section>
+
+        <section id="notification">
+            <h2>6. Notification Service</h2>
+
+            <h3>Event Consumer</h3>
+
+            <p>
+                The notification service runs an event consumer in a background thread that continuously listens for ApplicationAccepted events.
+            </p>
+
+            <h4>File: backend/notification-service/event_consumer.py</h4>
+
+<pre><code><span class="keyword">class</span> <span class="class-name">EventConsumer</span>:
+    <span class="string">"""Consumes events from RabbitMQ and processes them."""</span>
+
+    <span class="keyword">def</span> <span class="function">start_consuming</span>(<span class="keyword">self</span>):
+        <span class="string">"""Start consuming events from RabbitMQ."""</span>
+        <span class="keyword">self</span>.<span class="function">connect</span>()
+        queue_name = <span class="keyword">self</span>.<span class="function">setup_queue</span>()
+
+        <span class="comment"># Set QoS - process one message at a time</span>
+        <span class="keyword">self</span>.channel.<span class="function">basic_qos</span>(prefetch_count=<span class="number">1</span>)
+
+        <span class="comment"># Start consuming with manual acknowledgment</span>
+        <span class="keyword">self</span>.channel.<span class="function">basic_consume</span>(
+            queue=queue_name,
+            on_message_callback=<span class="keyword">self</span>.on_message,
+            auto_ack=<span class="keyword">False</span>  <span class="comment"># Manual acknowledgment for reliability</span>
+        )
+
+        <span class="keyword">self</span>.channel.<span class="function">start_consuming</span>()
+
+    <span class="keyword">def</span> <span class="function">on_message</span>(<span class="keyword">self</span>, channel, method, properties, body):
+        <span class="string">"""Callback when a message is received."""</span>
+        <span class="keyword">try</span>:
+            message = json.<span class="function">loads</span>(body.<span class="function">decode</span>(<span class="string">'utf-8'</span>))
+
+            <span class="keyword">if</span> message.<span class="function">get</span>(<span class="string">'event_type'</span>) == <span class="string">'ApplicationAccepted'</span>:
+                <span class="keyword">self</span>.<span class="function">process_application_accepted</span>(message)
+
+            <span class="comment"># Acknowledge message after successful processing</span>
+            channel.<span class="function">basic_ack</span>(delivery_tag=method.delivery_tag)
+
+        <span class="keyword">except</span> <span class="class-name">Exception</span> <span class="keyword">as</span> e:
+            <span class="function">print</span>(<span class="string">f"Error processing message: {e}"</span>)
+            <span class="comment"># Reject message and don't requeue</span>
+            channel.<span class="function">basic_nack</span>(delivery_tag=method.delivery_tag, requeue=<span class="keyword">False</span>)
+</code></pre>
+
+            <h3>Email Sender</h3>
+
+            <p>
+                The email sender service sends professional HTML emails to candidates when their applications are accepted.
+            </p>
+
+            <h4>File: backend/notification-service/email_sender.py</h4>
+
+<pre><code><span class="keyword">class</span> <span class="class-name">EmailSender</span>:
+    <span class="keyword">def</span> <span class="function">send_application_accepted_email</span>(<span class="keyword">self</span>, employee_email,
+                                           employee_username, job_title=<span class="keyword">None</span>):
+        <span class="string">"""Send email notification when application is accepted."""</span>
+
+        subject = <span class="string">"🎉 Your Job Application Has Been Accepted!"</span>
+
+        <span class="comment"># Create professional HTML email</span>
+        html_body = <span class="string">f"""
+        &lt;html&gt;
+        &lt;body&gt;
+            &lt;h2&gt;Congratulations {employee_username}!&lt;/h2&gt;
+            &lt;p&gt;Great news! Your job application has been accepted.&lt;/p&gt;
+            {f'&lt;p&gt;&lt;strong&gt;Position:&lt;/strong&gt; {job_title}&lt;/p&gt;' if job_title else ''}
+            &lt;p&gt;The employer has reviewed your application and would like to
+               move forward with the interview process.&lt;/p&gt;
+        &lt;/body&gt;
+        &lt;/html&gt;
+        """</span>
+
+        <span class="keyword">return</span> <span class="keyword">self</span>.<span class="function">_send_email</span>(employee_email, subject, html_body)
+</code></pre>
+
+            <div class="info-box">
+                <strong>Console Mode:</strong> For development without SMTP credentials, emails are printed to the console.
+                In production, configure SMTP settings via environment variables.
+            </div>
+
+            <h3>Flask App with Background Consumer</h3>
+
+            <p>
+                The notification service runs both a Flask HTTP server (for health checks and manual testing) and the RabbitMQ consumer in a background thread.
+            </p>
+
+            <h4>File: backend/notification-service/app.py</h4>
+
+<pre><code><span class="keyword">def</span> <span class="function">start_event_consumer</span>():
+    <span class="string">"""Start RabbitMQ event consumer in background thread."""</span>
+    <span class="keyword">global</span> event_consumer
+
+    <span class="comment"># Wait for RabbitMQ to be ready</span>
+    time.<span class="function">sleep</span>(<span class="number">10</span>)
+
+    event_consumer = <span class="class-name">EventConsumer</span>()
+    event_consumer.<span class="function">start_consuming</span>()  <span class="comment"># Blocking call</span>
+
+<span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:
+    <span class="comment"># Start event consumer in background thread</span>
+    consumer_thread = threading.<span class="class-name">Thread</span>(
+        target=start_event_consumer,
+        daemon=<span class="keyword">True</span>
+    )
+    consumer_thread.<span class="function">start</span>()
+
+    <span class="comment"># Start Flask app</span>
+    app.<span class="function">run</span>(host=<span class="string">"0.0.0.0"</span>, port=<span class="number">5000</span>, debug=<span class="keyword">False</span>)
+</code></pre>
+        </section>
+
+        <section id="user-deletion">
+            <h2>7. User Deletion Service (GDPR Compliance)</h2>
+
+            <h3>Overview</h3>
+
+            <p>
+                The second implemented feature is user account deletion with GDPR compliance. When a user deletes their account,
+                the system must remove all personal data from both the user-service database and Keycloak authentication system.
+                This is a perfect use case for event-driven architecture.
+            </p>
+
+            <div class="info-box">
+                <strong>GDPR Requirement:</strong> Under GDPR (General Data Protection Regulation), users have the "right to be forgotten."
+                When a user requests account deletion, all their personal data must be removed from all systems.
+            </div>
+
+            <h3>User Deletion Flow</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-box">User clicks "Delete Account"<br/>(DELETE /api/users/profile/{id})</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">User-Service Command Handler</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box database">1. Delete user profile from PostgreSQL userdb</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box database">2. Store UserDeleted event in event store</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box rabbitmq">3. Publish event to RabbitMQ<br/>(exchange: talentlink.events, key: user.deleted)</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box rabbitmq">RabbitMQ routes event to auth service queue</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box notification">Auth-Service Event Consumer</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box notification">Delete user from Keycloak database</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box" style="background: #28a745;">✅ User completely removed from all systems</div>
+            </div>
+
+            <h3>User-Service Implementation</h3>
+
+            <h4>Event Publisher Integration</h4>
+
+            <p>
+                The user-service uses the same EventPublisher class as job-service to store and publish events.
+            </p>
+
+            <h4>File: backend/user-service/cqrs/handlers/command_handlers.py</h4>
+
+<pre><code><span class="keyword">class</span> <span class="class-name">UserCommandHandler</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, service: UserProfileService, db_session=<span class="keyword">None</span>):
+        <span class="keyword">self</span>.service = service
+        <span class="keyword">self</span>.db_session = db_session
+
+    <span class="keyword">def</span> <span class="function">handle_delete_profile</span>(<span class="keyword">self</span>, command):
+        <span class="string">"""Delete user profile and publish UserDeleted event."""</span>
+
+        <span class="comment"># Get user profile before deletion (for event data)</span>
+        user_profile = <span class="keyword">self</span>.service.<span class="function">get_profile</span>(command.user_id)
+        <span class="keyword">if not</span> user_profile:
+            <span class="keyword">return</span> <span class="keyword">False</span>
+
+        <span class="comment"># Delete user from database</span>
+        success = <span class="keyword">self</span>.service.<span class="function">delete_profile</span>(command.user_id)
+
+        <span class="comment"># If deletion succeeded, publish UserDeleted event</span>
+        <span class="keyword">if</span> success:
+            <span class="keyword">self</span>.<span class="function">_publish_user_deleted_event</span>(
+                user_profile,
+                command.user_id
+            )
+
+        <span class="keyword">return</span> success
+
+    <span class="keyword">def</span> <span class="function">_publish_user_deleted_event</span>(<span class="keyword">self</span>, user_profile, deleted_by_user_id):
+        <span class="string">"""Publish UserDeleted event to event store and RabbitMQ."""</span>
+        publisher = <span class="class-name">EventPublisher</span>(<span class="keyword">self</span>.db_session)
+
+        event_data = {
+            <span class="string">"user_id"</span>: user_profile[<span class="string">'user_id'</span>],
+            <span class="string">"username"</span>: user_profile[<span class="string">'username'</span>],
+            <span class="string">"email"</span>: user_profile[<span class="string">'email'</span>],
+            <span class="string">"role"</span>: user_profile[<span class="string">'role'</span>],
+            <span class="string">"deleted_at"</span>: user_profile.<span class="function">get</span>(<span class="string">'updated_at'</span>),
+            <span class="string">"deleted_by"</span>: deleted_by_user_id
+        }
+
+        publisher.<span class="function">publish_event</span>(
+            event_type=<span class="string">"UserDeleted"</span>,
+            aggregate_id=user_profile[<span class="string">'user_id'</span>],
+            aggregate_type=<span class="string">"UserProfile"</span>,
+            event_data=event_data,
+            user_id=deleted_by_user_id
+        )
+</code></pre>
+
+            <h3>Auth-Service Event Consumer</h3>
+
+            <p>
+                The auth-service runs an event consumer that subscribes to <code>user.deleted</code> events and deletes
+                users from Keycloak when they are deleted from the user-service.
+            </p>
+
+            <h4>File: backend/auth-service/event_consumer.py</h4>
+
+<pre><code><span class="keyword">class</span> <span class="class-name">EventConsumer</span>:
+    <span class="string">"""Consumes UserDeleted events and deletes users from Keycloak."""</span>
+
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, keycloak_admin):
+        <span class="keyword">self</span>.admin = keycloak_admin
+        <span class="keyword">self</span>.rabbitmq_host = os.<span class="function">getenv</span>(<span class="string">'RABBITMQ_HOST'</span>, <span class="string">'rabbitmq'</span>)
+        <span class="keyword">self</span>.rabbitmq_port = <span class="function">int</span>(os.<span class="function">getenv</span>(<span class="string">'RABBITMQ_PORT'</span>, <span class="string">'5672'</span>))
+
+    <span class="keyword">def</span> <span class="function">setup_queue</span>(<span class="keyword">self</span>):
+        <span class="string">"""Set up queue for UserDeleted events."""</span>
+
+        <span class="comment"># Declare exchange (same as other services)</span>
+        exchange_name = <span class="string">'talentlink.events'</span>
+        <span class="keyword">self</span>.channel.<span class="function">exchange_declare</span>(
+            exchange=exchange_name,
+            exchange_type=<span class="string">'topic'</span>,
+            durable=<span class="keyword">True</span>
+        )
+
+        <span class="comment"># Declare queue for auth service</span>
+        queue_name = <span class="string">'auth.user.deleted'</span>
+        <span class="keyword">self</span>.channel.<span class="function">queue_declare</span>(
+            queue=queue_name,
+            durable=<span class="keyword">True</span>
+        )
+
+        <span class="comment"># Bind queue to exchange with routing key</span>
+        routing_key = <span class="string">'user.deleted'</span>
+        <span class="keyword">self</span>.channel.<span class="function">queue_bind</span>(
+            exchange=exchange_name,
+            queue=queue_name,
+            routing_key=routing_key
+        )
+
+        <span class="keyword">return</span> queue_name
+
+    <span class="keyword">def</span> <span class="function">process_user_deleted</span>(<span class="keyword">self</span>, event):
+        <span class="string">"""Process UserDeleted event by deleting user from Keycloak."""</span>
+
+        event_data = event.<span class="function">get</span>(<span class="string">'event_data'</span>, {})
+        user_id = event_data.<span class="function">get</span>(<span class="string">'user_id'</span>)
+        username = event_data.<span class="function">get</span>(<span class="string">'username'</span>)
+
+        <span class="keyword">if not</span> user_id:
+            <span class="function">print</span>(<span class="string">"⚠️ No user_id in event data. Skipping."</span>)
+            <span class="keyword">return</span>
+
+        <span class="keyword">try</span>:
+            <span class="comment"># Delete user from Keycloak</span>
+            <span class="keyword">self</span>.admin.<span class="function">delete_user</span>(user_id=user_id)
+            <span class="function">print</span>(<span class="string">f"✅ User '{username}' (ID: {user_id}) deleted from Keycloak!"</span>)
+
+        <span class="keyword">except</span> <span class="class-name">Exception</span> <span class="keyword">as</span> e:
+            <span class="comment"># Handle 404 - user already deleted</span>
+            <span class="keyword">if</span> <span class="string">"404"</span> <span class="keyword">in</span> <span class="function">str</span>(e):
+                <span class="function">print</span>(<span class="string">f"⚠️ User not found in Keycloak. Already deleted."</span>)
+            <span class="keyword">else</span>:
+                <span class="function">print</span>(<span class="string">f"❌ Failed to delete user: {e}"</span>)
+                <span class="keyword">raise</span>
+</code></pre>
+
+            <h3>RabbitMQ Queue Configuration</h3>
+
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Description</th>
+                    <th>Configuration</th>
+                </tr>
+                <tr>
+                    <td><strong>Exchange</strong></td>
+                    <td>Same topic exchange as other events</td>
+                    <td>Name: <code>talentlink.events</code><br/>Type: topic<br/>Durable: true</td>
+                </tr>
+                <tr>
+                    <td><strong>Queue</strong></td>
+                    <td>Queue for auth service</td>
+                    <td>Name: <code>auth.user.deleted</code><br/>Durable: true</td>
+                </tr>
+                <tr>
+                    <td><strong>Routing Key</strong></td>
+                    <td>Pattern for user deletion events</td>
+                    <td><code>user.deleted</code></td>
+                </tr>
+            </table>
+
+            <h3>Event Store Record</h3>
+
+            <p>Example of a UserDeleted event stored in the event store:</p>
+
+<pre><code><span class="comment">-- Query events table in user-service database</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> events <span class="keyword">WHERE</span> event_type = <span class="string">'UserDeleted'</span>;
+
+<span class="comment">-- Example output:</span>
+{
+  <span class="string">"event_id"</span>: <span class="number">1</span>,
+  <span class="string">"event_type"</span>: <span class="string">"UserDeleted"</span>,
+  <span class="string">"aggregate_id"</span>: <span class="string">"21445b58-3cb2-4e78-a343-ceacdcde193b"</span>,
+  <span class="string">"aggregate_type"</span>: <span class="string">"UserProfile"</span>,
+  <span class="string">"event_data"</span>: {
+    <span class="string">"user_id"</span>: <span class="string">"21445b58-3cb2-4e78-a343-ceacdcde193b"</span>,
+    <span class="string">"username"</span>: <span class="string">"testuser_delete"</span>,
+    <span class="string">"email"</span>: <span class="string">"testuser_delete@example.com"</span>,
+    <span class="string">"role"</span>: <span class="string">"employee"</span>,
+    <span class="string">"deleted_at"</span>: <span class="string">"2025-12-08T12:16:11.724047+00:00"</span>,
+    <span class="string">"deleted_by"</span>: <span class="string">"21445b58-3cb2-4e78-a343-ceacdcde193b"</span>
+  },
+  <span class="string">"timestamp"</span>: <span class="string">"2025-12-08 12:16:33.530795+00:00"</span>
+}
+</code></pre>
+
+            <div class="success-box">
+                <strong>GDPR Compliance Achieved:</strong> When a user deletes their account, all personal data is removed from:
+                <ul style="margin-top: 10px;">
+                    <li>User profile database (userdb PostgreSQL)</li>
+                    <li>Keycloak authentication database</li>
+                    <li>Complete audit trail maintained in event store for compliance reporting</li>
+                </ul>
+            </div>
+
+            <h3>Benefits of Event-Driven User Deletion</h3>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>✅ Data Consistency</h4>
+                    <p>Ensures user is removed from all systems - no orphaned accounts in Keycloak</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Service Decoupling</h4>
+                    <p>User-service doesn't need to know about Keycloak or auth-service directly</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Extensibility</h4>
+                    <p>Easy to add more cleanup subscribers (delete job applications, notifications, etc.)</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Audit Trail</h4>
+                    <p>Complete record of when and why user was deleted for compliance</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Reliability</h4>
+                    <p>If auth-service is down, event waits in queue until service recovers</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Idempotency</h4>
+                    <p>Safe to process same deletion event multiple times (handles 404 gracefully)</p>
+                </div>
+            </div>
+
+            <h3>Frontend Integration</h3>
+
+            <p>
+                The frontend ProfileScreen includes a "Delete Account" button that calls the user-service deletion endpoint.
+                Users are shown a confirmation dialog before account deletion proceeds.
+            </p>
+
+<pre><code><span class="comment">// Frontend API call</span>
+<span class="keyword">const</span> deleteAccount = <span class="keyword">async</span> () => {
+  <span class="keyword">const</span> userId = TokenStorage.<span class="function">getUserId</span>();
+
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(
+    <span class="string">`http://user-service:5000/api/users/profile/${userId}`</span>,
+    {
+      method: <span class="string">'DELETE'</span>,
+      headers: {
+        <span class="string">'Authorization'</span>: <span class="string">`Bearer ${TokenStorage.getAccessToken()}`</span>
+      }
+    }
+  );
+
+  <span class="keyword">if</span> (response.ok) {
+    <span class="comment">// Clear tokens and redirect to login</span>
+    TokenStorage.<span class="function">clearTokens</span>();
+    navigate(<span class="string">'/login'</span>);
+  }
+};
+</code></pre>
+        </section>
+
+        <section id="deployment">
+            <h2>8. Kubernetes Deployment</h2>
+
+            <h3>Updated Job-Service Deployment</h3>
+
+            <p>Environment variables added to job-service for RabbitMQ connectivity:</p>
+
+<pre><code><span class="keyword">env:</span>
+  - <span class="keyword">name:</span> RABBITMQ_HOST
+    <span class="keyword">value:</span> <span class="string">"rabbitmq"</span>
+  - <span class="keyword">name:</span> RABBITMQ_PORT
+    <span class="keyword">value:</span> <span class="string">"5672"</span>
+  - <span class="keyword">name:</span> RABBITMQ_USER
+    <span class="keyword">value:</span> <span class="string">"talentlink"</span>
+  - <span class="keyword">name:</span> RABBITMQ_PASS
+    <span class="keyword">value:</span> <span class="string">"talentlink123"</span>
+</code></pre>
+
+            <h3>Updated Notification-Service Deployment</h3>
+
+            <p>Environment variables for both RabbitMQ and SMTP configuration:</p>
+
+<pre><code><span class="keyword">env:</span>
+  <span class="comment"># RabbitMQ Configuration</span>
+  - <span class="keyword">name:</span> RABBITMQ_HOST
+    <span class="keyword">value:</span> <span class="string">"rabbitmq"</span>
+  - <span class="keyword">name:</span> RABBITMQ_PORT
+    <span class="keyword">value:</span> <span class="string">"5672"</span>
+  - <span class="keyword">name:</span> RABBITMQ_USER
+    <span class="keyword">value:</span> <span class="string">"talentlink"</span>
+  - <span class="keyword">name:</span> RABBITMQ_PASS
+    <span class="keyword">value:</span> <span class="string">"talentlink123"</span>
+
+  <span class="comment"># Job Service URL for fetching job details</span>
+  - <span class="keyword">name:</span> JOB_SERVICE_URL
+    <span class="keyword">value:</span> <span class="string">"http://job-service:5000"</span>
+
+  <span class="comment"># SMTP Configuration (optional - uses console mode if not set)</span>
+  - <span class="keyword">name:</span> SMTP_HOST
+    <span class="keyword">value:</span> <span class="string">"smtp.gmail.com"</span>
+  - <span class="keyword">name:</span> SMTP_PORT
+    <span class="keyword">value:</span> <span class="string">"587"</span>
+  - <span class="keyword">name:</span> SMTP_USER
+    <span class="keyword">value:</span> <span class="string">""</span>  <span class="comment"># Configure for production</span>
+  - <span class="keyword">name:</span> SMTP_PASS
+    <span class="keyword">value:</span> <span class="string">""</span>  <span class="comment"># Configure for production</span>
+</code></pre>
+
+            <h3>Deployment Commands</h3>
+
+<pre><code><span class="comment"># Deploy RabbitMQ</span>
+kubectl apply -f k8s/backend/rabbitmq/deployment.yaml
+kubectl apply -f k8s/backend/rabbitmq/service.yaml
+
+<span class="comment"># Deploy updated services</span>
+kubectl apply -f k8s/backend/job/deployment.yaml
+kubectl apply -f k8s/backend/notification/deployment.yaml
+
+<span class="comment"># Run database migration to create events table</span>
+kubectl exec -it &lt;job-service-pod&gt; -n talentlink-local -- python migrate_events.py
+
+<span class="comment"># Verify deployments</span>
+kubectl get pods -n talentlink-local | grep -E <span class="string">"(rabbitmq|job-service|notification)"</span>
+
+<span class="comment"># Check logs</span>
+kubectl logs -f &lt;notification-service-pod&gt; -n talentlink-local
+</code></pre>
+        </section>
+
+        <section id="testing">
+            <h2>8. Testing the Implementation</h2>
+
+            <h3>End-to-End Test Scenario</h3>
+
+            <div class="success-box">
+                <strong>Test Flow:</strong> Create a job application, then accept it as an employer. Verify that the notification email is sent.
+            </div>
+
+            <h4>Step 1: Create a Job Application</h4>
+
+<pre><code><span class="comment"># As an employee, apply to a job</span>
+curl -X POST http://job-service:5000/api/jobs/<span class="number">1</span>/apply \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{
+    "employee_id": "user123",
+    "cv": "&lt;base64-encoded-cv&gt;",
+    "portfolio_url": "https://github.com/user123"
+  }'</span>
+
+<span class="comment"># Response:</span>
+{
+  <span class="string">"application_id"</span>: <span class="number">42</span>,
+  <span class="string">"job_id"</span>: <span class="number">1</span>,
+  <span class="string">"employee_id"</span>: <span class="string">"user123"</span>,
+  <span class="string">"status"</span>: <span class="string">"pending"</span>,
+  <span class="string">"employee_profile"</span>: {
+    <span class="string">"email"</span>: <span class="string">"user123@example.com"</span>,
+    <span class="string">"username"</span>: <span class="string">"John Doe"</span>
+  }
+}
+</code></pre>
+
+            <h4>Step 2: Accept the Application</h4>
+
+<pre><code><span class="comment"># As an employer, accept the application</span>
+curl -X PATCH http://job-service:5000/api/applications/<span class="number">42</span>/status \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{
+    "employer_id": "employer456",
+    "status": "accepted"
+  }'</span>
+
+<span class="comment"># Response:</span>
+{
+  <span class="string">"application_id"</span>: <span class="number">42</span>,
+  <span class="string">"status"</span>: <span class="string">"accepted"</span>,
+  <span class="string">"updated_at"</span>: <span class="string">"2025-12-08T11:45:00Z"</span>
+}
+</code></pre>
+
+            <h4>Step 3: Verify Event in Event Store</h4>
+
+<pre><code><span class="comment"># Query the events table in job-service database</span>
+kubectl exec -it &lt;job-service-pod&gt; -n talentlink-local -- \
+  psql postgresql://jobservice:jobservice123@jobdb-postgres:5432/jobdb \
+  -c <span class="string">"SELECT * FROM events ORDER BY timestamp DESC LIMIT 1;"</span>
+
+<span class="comment"># Output:</span>
+ event_id | event_type           | aggregate_id | aggregate_type  | event_data
+----------+----------------------+--------------+-----------------+-------------
+    <span class="number">1</span>     | ApplicationAccepted  | <span class="number">42</span>           | JobApplication  | {...}
+</code></pre>
+
+            <h4>Step 4: Check Notification Service Logs</h4>
+
+<pre><code>kubectl logs -f &lt;notification-service-pod&gt; -n talentlink-local
+
+<span class="comment"># Expected output:</span>
+📩 Received event: application.accepted
+   Event ID: <span class="number">1</span>
+   Event Type: ApplicationAccepted
+   Aggregate: JobApplication<span class="comment">#42</span>
+
+📧 Processing ApplicationAccepted event:
+   Application ID: <span class="number">42</span>
+   Job ID: <span class="number">1</span>
+   Employee: John Doe (user123@example.com)
+
+================================================================================
+📧 EMAIL NOTIFICATION (Console Mode - No SMTP configured)
+================================================================================
+To: user123@example.com
+From: Talentlink &lt;noreply@talentlink.com&gt;
+Subject: 🎉 Your Job Application Has Been Accepted!
+--------------------------------------------------------------------------------
+
+Congratulations John Doe!
+
+Great news! Your job application has been accepted.
+Position: Senior Software Engineer
+
+The employer has reviewed your application and would like to move forward
+with the interview process.
+
+Next Steps:
+- Check your Talentlink account <span class="keyword">for</span> interview details
+- Prepare your documents and portfolio
+- Research the company and position
+
+================================================================================
+
+✅ Email notification sent successfully to user123@example.com
+✅ Message processed and acknowledged
+</code></pre>
+
+            <h3>Manual Testing Endpoint</h3>
+
+            <p>The notification service also provides a manual testing endpoint:</p>
+
+<pre><code>curl -X POST http://notification-service:5000/api/notifications/send \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{
+    "type": "application_accepted",
+    "email": "test@example.com",
+    "name": "Test User",
+    "job_title": "Test Position"
+  }'</span>
+</code></pre>
+
+            <h3>Health Check Endpoints</h3>
+
+<pre><code><span class="comment"># Check notification service health</span>
+curl http://notification-service:5000/api/notifications/health
+
+<span class="comment"># Response:</span>
+{
+  <span class="string">"status"</span>: <span class="string">"notification-service ok"</span>,
+  <span class="string">"rabbitmq_consumer"</span>: <span class="string">"running"</span>
+}
+
+<span class="comment"># Check service statistics</span>
+curl http://notification-service:5000/api/notifications/stats
+
+<span class="comment"># Response:</span>
+{
+  <span class="string">"service"</span>: <span class="string">"notification-service"</span>,
+  <span class="string">"version"</span>: <span class="string">"1.0.0"</span>,
+  <span class="string">"features"</span>: [
+    <span class="string">"Email notifications"</span>,
+    <span class="string">"RabbitMQ event consumer"</span>,
+    <span class="string">"ApplicationAccepted event handling"</span>
+  ],
+  <span class="string">"consumer_active"</span>: <span class="keyword">true</span>
+}
+</code></pre>
+        </section>
+
+        <section id="benefits">
+            <h2>9. Benefits & Trade-offs</h2>
+
+            <h3>Benefits of This Architecture</h3>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>✅ Loose Coupling</h4>
+                    <p>Services communicate through events without direct dependencies. Job-service doesn't know about notification-service.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Scalability</h4>
+                    <p>Can add multiple notification-service replicas to handle high email volume without affecting job-service.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Resilience</h4>
+                    <p>If notification-service is down, events are queued in RabbitMQ and processed when it recovers. No data loss.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Fast API Response</h4>
+                    <p>Employer gets immediate response after accepting application. Email sending doesn't block the request.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Extensibility</h4>
+                    <p>Easy to add new event subscribers (SMS service, analytics, search indexer) without touching existing code.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Audit Trail</h4>
+                    <p>Complete history of all ApplicationAccepted events stored in event store for compliance and debugging.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Event Replay</h4>
+                    <p>Can rebuild system state or reprocess events by replaying from event store.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>✅ Testability</h4>
+                    <p>Can test event publishing and consuming independently. Mock RabbitMQ for unit tests.</p>
+                </div>
+            </div>
+
+            <h3>Trade-offs and Challenges</h3>
+
+            <table>
+                <tr>
+                    <th>Challenge</th>
+                    <th>Impact</th>
+                    <th>Mitigation</th>
+                </tr>
+                <tr>
+                    <td><strong>Eventual Consistency</strong></td>
+                    <td>Email may arrive a few seconds after acceptance</td>
+                    <td>Acceptable for notifications; user sees immediate success message</td>
+                </tr>
+                <tr>
+                    <td><strong>Added Complexity</strong></td>
+                    <td>More moving parts (RabbitMQ, event store, consumers)</td>
+                    <td>Well worth it for scalability and resilience; good documentation helps</td>
+                </tr>
+                <tr>
+                    <td><strong>Debugging Difficulty</strong></td>
+                    <td>Harder to trace event flow across services</td>
+                    <td>Use correlation IDs, structured logging, and distributed tracing (Jaeger)</td>
+                </tr>
+                <tr>
+                    <td><strong>Message Ordering</strong></td>
+                    <td>Events may not always process in order</td>
+                    <td>Design events to be idempotent; use version numbers in event store</td>
+                </tr>
+                <tr>
+                    <td><strong>Infrastructure Cost</strong></td>
+                    <td>Need to deploy and manage RabbitMQ</td>
+                    <td>RabbitMQ is lightweight and battle-tested; can use managed services in production</td>
+                </tr>
+            </table>
+
+            <h3>When to Use Event-Driven vs Synchronous</h3>
+
+            <div class="info-box">
+                <strong>Rule of Thumb:</strong>
+                <ul>
+                    <li>Use <strong>synchronous REST</strong> for user-facing operations requiring immediate data (login, browsing, fetching)</li>
+                    <li>Use <strong>asynchronous events</strong> for side-effects, background tasks, and cross-service workflows</li>
+                    <li>Use <strong>event sourcing</strong> when you need complete audit trail or ability to replay events</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="next-steps">
+            <h2>11. Future Enhancements</h2>
+
+            <h3>Additional Event Types</h3>
+
+            <p>Expand event-driven architecture to cover more domain events:</p>
+
+            <ul>
+                <li><strong>JobPosted:</strong> Notify matching candidates when new jobs are posted</li>
+                <li><strong>ApplicationSubmitted:</strong> Send confirmation email to employee, notify employer</li>
+                <li><strong>ApplicationRejected:</strong> Send rejection email to employee</li>
+                <li><strong>ProfileUpdated:</strong> Sync profile changes to job applications</li>
+                <li><strong>JobApplicationDeleted:</strong> Cleanup related data when applications are removed</li>
+            </ul>
+
+            <div class="success-box">
+                <strong>Already Implemented:</strong>
+                <ul style="margin-top: 10px;">
+                    <li>✅ <strong>ApplicationAccepted:</strong> Email notification to employees</li>
+                    <li>✅ <strong>UserDeleted:</strong> GDPR-compliant cleanup across all services</li>
+                </ul>
+            </div>
+
+            <h3>Additional Subscribers</h3>
+
+            <p>Add more services that subscribe to events:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Analytics Service</h4>
+                    <p>Subscribe to all events (<code>#</code>) for business intelligence dashboards</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Search Indexer</h4>
+                    <p>Subscribe to JobPosted, JobUpdated events to keep Elasticsearch index fresh</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>SMS Service</h4>
+                    <p>Send SMS notifications for critical events like ApplicationAccepted</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Audit Service</h4>
+                    <p>Centralized audit log consuming all events for compliance reporting</p>
+                </div>
+            </div>
+
+            <h3>Advanced Event Sourcing Features</h3>
+
+            <ul>
+                <li><strong>Event Replay:</strong> Rebuild read models by replaying events from event store</li>
+                <li><strong>Snapshots:</strong> Store aggregate snapshots for faster state reconstruction</li>
+                <li><strong>Event Versioning:</strong> Handle schema evolution with event version numbers</li>
+                <li><strong>Time Travel:</strong> Query system state at any point in history</li>
+            </ul>
+
+            <h3>CQRS Read Models</h3>
+
+            <p>Build optimized read models from events:</p>
+
+            <ul>
+                <li><strong>Job Recommendation Model:</strong> Materialized view of jobs matching user skills</li>
+                <li><strong>Application Statistics:</strong> Aggregate stats (acceptance rate, time-to-hire, etc.)</li>
+                <li><strong>Activity Feed:</strong> Recent activity stream for users</li>
+            </ul>
+
+            <h3>Production Readiness</h3>
+
+            <div class="warning-box">
+                <strong>Before Production:</strong>
+                <ul>
+                    <li>Configure real SMTP credentials for email sending</li>
+                    <li>Set up RabbitMQ clustering for high availability</li>
+                    <li>Implement dead letter queues for failed messages</li>
+                    <li>Add circuit breakers for RabbitMQ connections</li>
+                    <li>Set up monitoring dashboards for message queue metrics</li>
+                    <li>Implement correlation IDs for distributed tracing</li>
+                    <li>Add retry policies with exponential backoff</li>
+                </ul>
+            </div>
+
+            <h3>Message Queue Monitoring</h3>
+
+<pre><code><span class="comment"># Access RabbitMQ Management UI</span>
+kubectl port-forward service/rabbitmq <span class="number">15672</span>:<span class="number">15672</span> -n talentlink-local
+
+<span class="comment"># Open browser to http://localhost:15672</span>
+<span class="comment"># Login with: talentlink / talentlink123</span>
+
+<span class="comment"># Monitor:</span>
+- Message rates (publish/deliver)
+- Queue depths
+- Consumer count
+- Connection status
+- Exchange bindings
+</code></pre>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 Talentlink - Event-Driven Architecture Documentation</p>
+            <p>Built with RabbitMQ, Event Sourcing, and CQRS patterns</p>
+        </footer>
+    </div>
+</body>
+</html>

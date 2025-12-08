@@ -38,6 +38,14 @@ spec:
               value: "jaeger"
             - name: JAEGER_PORT
               value: "6831"
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: "talentlink"
+            - name: RABBITMQ_PASS
+              value: "talentlink123"
           volumeMounts:
             - name: uploads
               mountPath: /app/uploads

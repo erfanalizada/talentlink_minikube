@@ -33,7 +33,7 @@ def get_application_handlers():
     job_repository = JobRepository(db)
     app_repository = JobApplicationRepository(db)
     service = JobApplicationService(app_repository, job_repository)
-    command_handler = ApplicationCommandHandler(service)
+    command_handler = ApplicationCommandHandler(service, db_session=db)
     query_handler = ApplicationQueryHandler(service)
     return command_handler, query_handler, db
 

@@ -26,6 +26,28 @@ spec:
           env:
             - name: ENVIRONMENT
               value: local
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: "talentlink"
+            - name: RABBITMQ_PASS
+              value: "talentlink123"
+            - name: JOB_SERVICE_URL
+              value: "http://job-service:5000"
+            - name: SMTP_HOST
+              value: "smtp.gmail.com"
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_USER
+              value: ""
+            - name: SMTP_PASS
+              value: ""
+            - name: SENDER_EMAIL
+              value: "noreply@talentlink.com"
+            - name: SENDER_NAME
+              value: "Talentlink"
           readinessProbe:
             httpGet:
               path: /api/notifications/health

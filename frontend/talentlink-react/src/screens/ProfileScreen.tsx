@@ -17,6 +17,8 @@ export const ProfileScreen: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [description, setDescription] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -136,6 +138,33 @@ export const ProfileScreen: React.FC = () => {
     } finally {
       setIsSaving(false);
       console.log('🔵 handleSaveProfile finished');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const userId = TokenStorage.getUserId();
+    if (!userId) {
+      console.error('❌ No userId found');
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      console.log('🗑️ Deleting account...');
+      await UserService.deleteProfile(userId);
+      console.log('✅ Account deleted successfully');
+
+      // Clear tokens and redirect to login
+      TokenStorage.clearTokens();
+      navigate('/login');
+    } catch (e: any) {
+      console.error('❌ Error deleting account:', e);
+      setError(e.message);
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -324,6 +353,59 @@ export const ProfileScreen: React.FC = () => {
             />
           </div>
         </Card>
+
+        {/* Delete Account Section */}
+        <Card className={styles.dangerCard}>
+          <h3 className={styles.dangerTitle}>Danger Zone</h3>
+          <p className={styles.dangerText}>
+            Once you delete your account, there is no going back. This will permanently delete your profile,
+            job applications, and all associated data from all systems.
+          </p>
+          <button
+            className={styles.deleteButton}
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={isEditing || isSaving}
+          >
+            Delete Account
+          </button>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        {showDeleteConfirm && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <h2 className={styles.modalTitle}>Delete Account?</h2>
+              <p className={styles.modalText}>
+                Are you sure you want to delete your account? This action cannot be undone.
+              </p>
+              <p className={styles.modalWarning}>
+                This will permanently delete:
+              </p>
+              <ul className={styles.modalList}>
+                <li>Your profile and personal information</li>
+                <li>All job applications</li>
+                <li>Your authentication credentials</li>
+                <li>All associated data</li>
+              </ul>
+              <div className={styles.modalActions}>
+                <button
+                  className={styles.modalCancelButton}
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={styles.modalConfirmButton}
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Deleting...' : 'Yes, Delete My Account'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

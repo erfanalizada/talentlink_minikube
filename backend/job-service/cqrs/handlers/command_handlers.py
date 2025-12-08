@@ -4,7 +4,7 @@ Handlers execute commands using the existing service layer.
 """
 from typing import Optional
 from services import JobService, JobApplicationService
-from models import Job, JobApplication
+from models import Job, JobApplication, ApplicationStatus
 from cqrs.commands import (
     CreateJobCommand,
     UpdateJobCommand,
@@ -13,6 +13,7 @@ from cqrs.commands import (
     UpdateApplicationStatusCommand,
     DeleteApplicationCommand
 )
+from event_publisher import EventPublisher
 
 
 class JobCommandHandler:
@@ -60,10 +61,11 @@ class JobCommandHandler:
 
 
 class ApplicationCommandHandler:
-    """Handler for application-related commands."""
+    """Handler for application-related commands with event sourcing."""
 
-    def __init__(self, service: JobApplicationService):
+    def __init__(self, service: JobApplicationService, db_session=None):
         self.service = service
+        self.db_session = db_session
 
     def handle_apply_to_job(self, command: ApplyToJobCommand) -> JobApplication:
         """
@@ -81,13 +83,64 @@ class ApplicationCommandHandler:
     def handle_update_application_status(self, command: UpdateApplicationStatusCommand) -> Optional[JobApplication]:
         """
         Handle UpdateApplicationStatusCommand.
-        Updates the status of an application.
+        Updates the status of an application and publishes event if ACCEPTED.
         """
-        return self.service.update_application_status(
+        # Update application status
+        application = self.service.update_application_status(
             application_id=command.application_id,
             employer_id=command.employer_id,
             status=command.status
         )
+
+        # If application was accepted, publish ApplicationAccepted event
+        if application and application.status == ApplicationStatus.ACCEPTED:
+            self._publish_application_accepted_event(application, command.employer_id)
+
+        return application
+
+    def _publish_application_accepted_event(self, application: JobApplication, employer_id: str):
+        """
+        Publish ApplicationAccepted event to event store and RabbitMQ.
+
+        This event will be consumed by notification-service to send email to employee.
+        """
+        if not self.db_session:
+            from flask import current_app
+            current_app.logger.warning("⚠️ Cannot publish event: no database session provided")
+            return
+
+        try:
+            # Create event publisher
+            publisher = EventPublisher(self.db_session)
+
+            # Prepare event data
+            event_data = {
+                "application_id": application.application_id,
+                "job_id": application.job_id,
+                "employee_id": application.employee_id,
+                "employee_email": application.employee_email,
+                "employee_username": application.employee_username,
+                "employer_id": employer_id,
+                "cv_url": application.cv_url,
+                "portfolio_url": application.portfolio_url,
+                "status": application.status.value,
+                "accepted_at": application.updated_at.isoformat() if application.updated_at else None
+            }
+
+            # Publish event
+            publisher.publish_event(
+                event_type="ApplicationAccepted",
+                aggregate_id=application.application_id,
+                aggregate_type="JobApplication",
+                event_data=event_data,
+                user_id=employer_id
+            )
+
+        except Exception as e:
+            from flask import current_app
+            current_app.logger.error(f"❌ Failed to publish ApplicationAccepted event: {e}")
+            # Don't raise - application update already succeeded
+            # Event can be retried from event store if needed
 
     def handle_delete_application(self, command: DeleteApplicationCommand) -> bool:
         """

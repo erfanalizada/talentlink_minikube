@@ -66,6 +66,18 @@ spec:
             - name: USER_SERVICE_URL
               value: "http://user-service:5000"
 
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+
+            - name: RABBITMQ_PORT
+              value: "5672"
+
+            - name: RABBITMQ_USER
+              value: "talentlink"
+
+            - name: RABBITMQ_PASS
+              value: "talentlink123"
+
           # ---------------- HEALTH CHECKS ----------------
           readinessProbe:
             httpGet:

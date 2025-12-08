@@ -11,13 +11,15 @@ from cqrs.commands import (
     DeleteUserProfileCommand,
     UploadProfilePictureCommand
 )
+from event_publisher import EventPublisher
 
 
 class UserCommandHandler:
-    """Handler for user-related commands."""
+    """Handler for user-related commands with event sourcing."""
 
-    def __init__(self, service: UserProfileService):
+    def __init__(self, service: UserProfileService, db_session=None):
         self.service = service
+        self.db_session = db_session
 
     def handle_create_profile(self, command: CreateUserProfileCommand) -> UserProfile:
         """
@@ -60,9 +62,62 @@ class UserCommandHandler:
     def handle_delete_profile(self, command: DeleteUserProfileCommand) -> bool:
         """
         Handle DeleteUserProfileCommand.
-        Deletes a user profile.
+        Deletes a user profile and publishes UserDeleted event.
         """
-        return self.service.delete_profile(command.user_id)
+        # Get user profile before deletion (need data for event)
+        user_profile = self.service.get_profile(command.user_id)
+
+        if not user_profile:
+            return False
+
+        # Delete the profile
+        success = self.service.delete_profile(command.user_id)
+
+        # If deletion was successful, publish UserDeleted event
+        if success:
+            self._publish_user_deleted_event(user_profile, command.user_id)
+
+        return success
+
+    def _publish_user_deleted_event(self, user_profile, deleted_by_user_id):
+        """
+        Publish UserDeleted event to event store and RabbitMQ.
+
+        This event will be consumed by auth-service to delete user from Keycloak.
+        """
+        if not self.db_session:
+            from flask import current_app
+            current_app.logger.warning("⚠️ Cannot publish event: no database session provided")
+            return
+
+        try:
+            # Create event publisher
+            publisher = EventPublisher(self.db_session)
+
+            # Prepare event data
+            event_data = {
+                "user_id": user_profile['user_id'],
+                "username": user_profile['username'],
+                "email": user_profile['email'],
+                "role": user_profile['role'],
+                "deleted_at": user_profile.get('updated_at') or user_profile.get('created_at'),
+                "deleted_by": deleted_by_user_id
+            }
+
+            # Publish event
+            publisher.publish_event(
+                event_type="UserDeleted",
+                aggregate_id=user_profile['user_id'],
+                aggregate_type="UserProfile",
+                event_data=event_data,
+                user_id=deleted_by_user_id
+            )
+
+        except Exception as e:
+            from flask import current_app
+            current_app.logger.error(f"❌ Failed to publish UserDeleted event: {e}")
+            # Don't raise - deletion already succeeded
+            # Event can be retried from event store if needed
 
     def handle_upload_profile_picture(self, command: UploadProfilePictureCommand) -> str:
         """

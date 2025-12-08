@@ -1,5 +1,7 @@
 import os
 import requests
+import threading
+import time
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from keycloak import KeycloakOpenID, KeycloakAdmin
@@ -11,6 +13,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk.resources import Resource
+from event_consumer import EventConsumer
 
 load_dotenv()
 app = Flask(__name__)
@@ -183,8 +186,42 @@ def login():
 
 @app.route("/api/auth/health")
 def health():
-    return jsonify({"status": "auth-service ok"}), 200
+    """Health check endpoint."""
+    consumer_status = "running" if event_consumer and event_consumer.connection and not event_consumer.connection.is_closed else "not connected"
+
+    return jsonify({
+        "status": "auth-service ok",
+        "rabbitmq_consumer": consumer_status
+    }), 200
+
+
+# Global event consumer instance
+event_consumer = None
+consumer_thread = None
+
+
+def start_event_consumer():
+    """
+    Start RabbitMQ event consumer in a separate thread.
+    This runs continuously, listening for UserDeleted events.
+    """
+    global event_consumer
+
+    # Wait for RabbitMQ to be ready
+    print("⏳ Waiting 10 seconds for RabbitMQ to be ready...")
+    time.sleep(10)
+
+    print("🚀 Starting RabbitMQ event consumer thread...")
+    event_consumer = EventConsumer(admin)
+    event_consumer.start_consuming()
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    # Start event consumer in background thread
+    consumer_thread = threading.Thread(target=start_event_consumer, daemon=True)
+    consumer_thread.start()
+    print("✅ Event consumer thread started")
+
+    # Start Flask app
+    print("🚀 Starting Flask app on port 5000...")
+    app.run(host="0.0.0.0", port=5000, debug=False)

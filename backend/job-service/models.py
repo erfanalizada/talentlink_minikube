@@ -2,10 +2,11 @@
 Database models for jobs and applications.
 Single Responsibility: Defines only database schema/models.
 """
-from sqlalchemy import Column, String, Text, DateTime, Enum, Integer, Float, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, Enum, Integer, Float, ForeignKey, JSON
 from sqlalchemy.sql import func
 from database import Base
 import enum
+import json
 
 
 class ApplicationStatus(enum.Enum):
@@ -96,4 +97,43 @@ class JobApplication(Base):
             } if self.employee_username else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class Event(Base):
+    """
+    Event sourcing model - stores domain events.
+    This table acts as an event store for audit trail and event replay.
+    """
+    __tablename__ = "events"
+
+    # Primary key
+    event_id = Column(Integer, primary_key=True, autoincrement=True)
+
+    # Event metadata
+    event_type = Column(String(100), nullable=False, index=True)  # e.g., "ApplicationAccepted"
+    aggregate_id = Column(String(255), nullable=False, index=True)  # e.g., application_id
+    aggregate_type = Column(String(100), nullable=False)  # e.g., "JobApplication"
+
+    # Event payload (stored as JSON)
+    event_data = Column(JSON, nullable=False)
+
+    # Metadata
+    user_id = Column(String(255), nullable=True)  # Who triggered the event
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Event versioning (for schema evolution)
+    version = Column(Integer, nullable=False, default=1)
+
+    def to_dict(self):
+        """Convert event to dictionary."""
+        return {
+            "event_id": self.event_id,
+            "event_type": self.event_type,
+            "aggregate_id": self.aggregate_id,
+            "aggregate_type": self.aggregate_type,
+            "event_data": self.event_data,
+            "user_id": self.user_id,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "version": self.version,
         }
