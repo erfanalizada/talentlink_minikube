@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentLink Diagram Editor V2 - Import & Edit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            width: 250px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        }
+
+        .toolbar h2 {
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .tool-section {
+            margin-bottom: 25px;
+        }
+
+        .tool-section h3 {
+            font-size: 1em;
+            margin-bottom: 12px;
+            color: #ecf0f1;
+        }
+
+        .tool-button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-button:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .tool-button.active {
+            background: #667eea;
+            border-color: #667eea;
+        }
+
+        .color-picker {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-button.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .action-button.success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .action-button.import {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        /* Canvas Area */
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .canvas-header {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .canvas-header h1 {
+            font-size: 1.5em;
+            color: #2c3e50;
+        }
+
+        .canvas-header input {
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 300px;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 19px, #e0e0e0 19px, #e0e0e0 20px),
+                repeating-linear-gradient(90deg, transparent, transparent 19px, #e0e0e0 19px, #e0e0e0 20px);
+            background-size: 20px 20px;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+        }
+
+        /* Properties Panel */
+        .properties {
+            width: 280px;
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 2px solid #e0e0e0;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .properties h2 {
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            color: #2c3e50;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .property-group {
+            margin-bottom: 20px;
+        }
+
+        .property-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        .property-group input,
+        .property-group select,
+        .property-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .property-group textarea {
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .property-group input[type="number"] {
+            width: 100%;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .instructions strong {
+            color: #667eea;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #34495e;
+            color: white;
+            padding: 8px 20px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+        }
+
+        .close-modal {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .diagram-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .diagram-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .diagram-card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .diagram-card h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .diagram-card p {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <h2>🎨 Diagram Tools</h2>
+
+            <div class="instructions">
+                <strong>Grid:</strong> 20px snap enabled<br>
+                <strong>Shift:</strong> Horizontal/vertical lines<br>
+                <strong>Arrows:</strong> Now with proper arrow heads!
+            </div>
+
+            <div class="tool-section">
+                <h3>📦 Shapes</h3>
+                <button class="tool-button" onclick="setTool('rectangle')">
+                    <span class="icon">▭</span> Rectangle
+                </button>
+                <button class="tool-button" onclick="setTool('roundrect')">
+                    <span class="icon">▢</span> Rounded Rect
+                </button>
+                <button class="tool-button" onclick="setTool('circle')">
+                    <span class="icon">●</span> Circle/Ellipse
+                </button>
+                <button class="tool-button" onclick="setTool('cylinder')">
+                    <span class="icon">⛁</span> Cylinder (DB)
+                </button>
+                <button class="tool-button" onclick="setTool('diamond')">
+                    <span class="icon">◆</span> Diamond
+                </button>
+            </div>
+
+            <div class="tool-section">
+                <h3>✏️ Lines & Text</h3>
+                <button class="tool-button" onclick="setTool('line')">
+                    <span class="icon">─</span> Line
+                </button>
+                <button class="tool-button" onclick="setTool('arrow')">
+                    <span class="icon">→</span> Arrow
+                </button>
+                <button class="tool-button" onclick="setTool('bidirectional')">
+                    <span class="icon">↔</span> Bi-Arrow
+                </button>
+                <button class="tool-button" onclick="setTool('text')">
+                    <span class="icon">A</span> Text
+                </button>
+            </div>
+
+            <div class="tool-section">
+                <h3>🎨 Styling</h3>
+                <label style="color: #ecf0f1; font-size: 12px; margin-bottom: 5px; display: block;">Fill Color</label>
+                <input type="color" id="fillColor" class="color-picker" value="#e3f2fd">
+
+                <label style="color: #ecf0f1; font-size: 12px; margin-bottom: 5px; display: block; margin-top: 10px;">Stroke Color</label>
+                <input type="color" id="strokeColor" class="color-picker" value="#2196f3">
+
+                <label style="color: #ecf0f1; font-size: 12px; margin-bottom: 5px; display: block; margin-top: 10px;">Line Width</label>
+                <input type="range" id="lineWidth" min="1" max="5" value="2" style="width: 100%;">
+                <span style="color: #ecf0f1; font-size: 11px;" id="lineWidthValue">2px</span>
+            </div>
+
+            <div class="tool-section">
+                <h3>🔧 Actions</h3>
+                <button class="action-button import" onclick="showImportDiagrams()">📥 Import Architecture Diagram</button>
+                <button class="action-button success" onclick="savePreview()">💾 Save & Preview</button>
+                <button class="action-button" onclick="exportPNG()">📥 Export PNG</button>
+                <button class="action-button" onclick="exportSVG()">📥 Export SVG</button>
+                <button class="action-button" onclick="saveToJSON()">💾 Save to JSON</button>
+                <button class="action-button import" onclick="loadFromJSON()">📂 Load from JSON</button>
+                <button class="action-button danger" onclick="clearCanvas()">🗑️ Clear Canvas</button>
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-container">
+            <div class="canvas-header">
+                <h1>Diagram Editor V2</h1>
+                <input type="text" id="diagramTitle" placeholder="Enter diagram title..." value="TalentLink Architecture">
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="canvas" width="2000" height="1500"></canvas>
+            </div>
+        </div>
+
+        <!-- Properties Panel -->
+        <div class="properties">
+            <h2>Properties</h2>
+
+            <div id="selectedElementProps">
+                <div class="instructions">
+                    Click on an element to edit its properties.<br><br>
+                    <strong>Tips:</strong><br>
+                    • Click to select & drag<br>
+                    • Double-click for properties<br>
+                    • Delete key to remove
+                </div>
+            </div>
+
+            <div class="property-group">
+                <label>Snap to Grid (20px)</label>
+                <input type="checkbox" id="snapToGrid" checked> Enabled
+            </div>
+
+            <div class="property-group">
+                <label>Canvas Size</label>
+                <select id="canvasSize" onchange="resizeCanvas()">
+                    <option value="2000,1500" selected>Large (2000x1500)</option>
+                    <option value="3000,2000">Extra Large (3000x2000)</option>
+                    <option value="1600,1200">Medium (1600x1200)</option>
+                    <option value="4000,3000">Huge (4000x3000)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span id="statusText">Ready - Import your architecture diagrams or start drawing</span>
+        <span id="mousePos">Position: 0, 0</span>
+    </div>
+
+    <!-- Import Diagrams Modal -->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Architecture Diagram</h2>
+                <button class="close-modal" onclick="closeModal()">Close</button>
+            </div>
+            <div class="instructions">
+                Select a diagram from the Architecture Documentation to import and edit
+            </div>
+            <div class="diagram-grid">
+                <div class="diagram-card" onclick="importDiagram('cqrs-flow')">
+                    <h3>1.1 CQRS Flow</h3>
+                    <p>Command/Query separation with layers</p>
+                </div>
+                <div class="diagram-card" onclick="importDiagram('event-sourcing')">
+                    <h3>2.1 Event Sourcing</h3>
+                    <p>Dual-write pattern with Event Store</p>
+                </div>
+                <div class="diagram-card" onclick="importDiagram('rabbitmq-arch')">
+                    <h3>3.1 RabbitMQ Architecture</h3>
+                    <p>Publishers, Exchange, Consumers</p>
+                </div>
+                <div class="diagram-card" onclick="importDiagram('rabbitmq-vs-es')">
+                    <h3>3.5 RabbitMQ vs Event Store</h3>
+                    <p>Temporary vs Permanent storage</p>
+                </div>
+                <div class="diagram-card" onclick="importDiagram('monitoring')">
+                    <h3>4.1 Monitoring Infrastructure</h3>
+                    <p>Prometheus, Grafana, Jaeger</p>
+                </div>
+                <div class="diagram-card" onclick="importDiagram('complete-system')">
+                    <h3>Complete System</h3>
+                    <p>Full TalentLink architecture</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content" style="max-width: 95%;">
+            <div class="modal-header">
+                <h2 id="previewTitle">Diagram Preview</h2>
+                <button class="close-modal" onclick="closeModal()">Close</button>
+            </div>
+            <div id="previewContent" style="text-align: center; padding: 20px;"></div>
+        </div>
+    </div>
+
+    <input type="file" id="jsonFileInput" style="display:none" accept=".json" onchange="handleJSONLoad(event)">
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let currentTool = 'rectangle';
+        let isDrawing = false;
+        let startX, startY;
+        let elements = [];
+        let selectedElement = null;
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        // Initialize
+        ctx.font = '14px Segoe UI';
+        ctx.lineJoin = 'miter';
+        ctx.lineCap = 'butt';
+
+        // Update line width display
+        document.getElementById('lineWidth').addEventListener('input', (e) => {
+            document.getElementById('lineWidthValue').textContent = e.target.value + 'px';
+        });
+
+        // Tool selection
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.tool-button').classList.add('active');
+            updateStatus(`Tool: ${tool}`);
+        }
+
+        // Canvas events
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('dblclick', handleDoubleClick);
+
+        // Delete key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Delete' && selectedElement) {
+                deleteElement();
+            }
+        });
+
+        // Track mouse position
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.round(e.clientX - rect.left);
+            const y = Math.round(e.clientY - rect.top);
+            document.getElementById('mousePos').textContent = `Position: ${x}, ${y}`;
+        });
+
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            if (document.getElementById('snapToGrid').checked) {
+                x = Math.round(x / 20) * 20;
+                y = Math.round(y / 20) * 20;
+            }
+
+            // Check if clicking on existing element
+            const clickedElement = getElementAtPoint(x, y);
+            if (clickedElement && (currentTool === 'rectangle' || currentTool === 'select')) {
+                selectedElement = clickedElement;
+                isDragging = true;
+                dragOffsetX = x - clickedElement.x;
+                dragOffsetY = y - clickedElement.y;
+                showElementProperties(clickedElement);
+                redraw();
+                return;
+            }
+
+            isDrawing = true;
+            startX = x;
+            startY = y;
+        }
+
+        function handleMouseMove(e) {
+            if (!isDrawing && !isDragging) return;
+
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            if (document.getElementById('snapToGrid').checked) {
+                x = Math.round(x / 20) * 20;
+                y = Math.round(y / 20) * 20;
+            }
+
+            if (isDragging && selectedElement) {
+                selectedElement.x = x - dragOffsetX;
+                selectedElement.y = y - dragOffsetY;
+
+                // Update line endpoints if it's a line/arrow
+                if (selectedElement.type === 'line' || selectedElement.type === 'arrow' || selectedElement.type === 'bidirectional') {
+                    const dx = selectedElement.x2 - selectedElement.x1;
+                    const dy = selectedElement.y2 - selectedElement.y1;
+                    selectedElement.x1 = selectedElement.x;
+                    selectedElement.y1 = selectedElement.y;
+                    selectedElement.x2 = selectedElement.x + dx;
+                    selectedElement.y2 = selectedElement.y + dy;
+                }
+
+                redraw();
+                return;
+            }
+
+            if (isDrawing) {
+                redraw();
+                drawPreview(x, y, e.shiftKey);
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (!isDrawing && !isDragging) return;
+
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            if (document.getElementById('snapToGrid').checked) {
+                x = Math.round(x / 20) * 20;
+                y = Math.round(y / 20) * 20;
+            }
+
+            if (isDragging) {
+                isDragging = false;
+                return;
+            }
+
+            if (isDrawing) {
+                if (currentTool === 'text') {
+                    const text = prompt('Enter text:', 'Label');
+                    if (text) {
+                        createElement(x, y, x, y, false, text);
+                    }
+                } else {
+                    createElement(startX, startY, x, y, e.shiftKey);
+                }
+                isDrawing = false;
+                redraw();
+            }
+        }
+
+        function handleDoubleClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const element = getElementAtPoint(x, y);
+            if (element) {
+                showElementProperties(element);
+            }
+        }
+
+        function createElement(x1, y1, x2, y2, shiftKey, textContent = '') {
+            const fillColor = document.getElementById('fillColor').value;
+            const strokeColor = document.getElementById('strokeColor').value;
+            const lineWidth = parseInt(document.getElementById('lineWidth').value);
+
+            // Force straight lines if shift key
+            if (shiftKey && (currentTool === 'line' || currentTool === 'arrow' || currentTool === 'bidirectional')) {
+                const dx = Math.abs(x2 - x1);
+                const dy = Math.abs(y2 - y1);
+                if (dx > dy) {
+                    y2 = y1; // Horizontal
+                } else {
+                    x2 = x1; // Vertical
+                }
+            }
+
+            const element = {
+                type: currentTool,
+                x: Math.min(x1, x2),
+                y: Math.min(y1, y2),
+                width: Math.abs(x2 - x1),
+                height: Math.abs(y2 - y1),
+                x1, y1, x2, y2,
+                fillColor,
+                strokeColor,
+                lineWidth,
+                text: textContent || (currentTool === 'text' ? 'Double-click to edit' : ''),
+                fontSize: 14
+            };
+
+            elements.push(element);
+            updateStatus(`Added ${currentTool}`);
+        }
+
+        function drawPreview(x, y, shiftKey) {
+            ctx.strokeStyle = '#667eea';
+            ctx.fillStyle = document.getElementById('fillColor').value + '80';
+            ctx.lineWidth = parseInt(document.getElementById('lineWidth').value);
+
+            let endX = x;
+            let endY = y;
+
+            if (shiftKey && (currentTool === 'line' || currentTool === 'arrow' || currentTool === 'bidirectional')) {
+                const dx = Math.abs(x - startX);
+                const dy = Math.abs(y - startY);
+                if (dx > dy) {
+                    endY = startY;
+                } else {
+                    endX = startX;
+                }
+            }
+
+            switch (currentTool) {
+                case 'rectangle':
+                case 'roundrect':
+                    const w = endX - startX;
+                    const h = endY - startY;
+                    if (currentTool === 'roundrect') {
+                        drawRoundRect(startX, startY, w, h, 10);
+                    } else {
+                        ctx.fillRect(startX, startY, w, h);
+                        ctx.strokeRect(startX, startY, w, h);
+                    }
+                    break;
+                case 'circle':
+                    const rx = Math.abs(endX - startX) / 2;
+                    const ry = Math.abs(endY - startY) / 2;
+                    const cx = startX + (endX - startX) / 2;
+                    const cy = startY + (endY - startY) / 2;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+                case 'line':
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+                    break;
+                case 'arrow':
+                    drawArrow(startX, startY, endX, endY, ctx.strokeStyle, ctx.lineWidth);
+                    break;
+                case 'bidirectional':
+                    drawBidirectionalArrow(startX, startY, endX, endY, ctx.strokeStyle, ctx.lineWidth);
+                    break;
+            }
+        }
+
+        function redraw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            elements.forEach((element, index) => {
+                const isSelected = element === selectedElement;
+
+                ctx.fillStyle = element.fillColor;
+                ctx.strokeStyle = element.strokeColor;
+                ctx.lineWidth = element.lineWidth;
+
+                switch (element.type) {
+                    case 'rectangle':
+                        ctx.fillRect(element.x, element.y, element.width, element.height);
+                        ctx.strokeRect(element.x, element.y, element.width, element.height);
+                        break;
+                    case 'roundrect':
+                        drawRoundRect(element.x, element.y, element.width, element.height, 10);
+                        break;
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.ellipse(
+                            element.x + element.width / 2,
+                            element.y + element.height / 2,
+                            element.width / 2,
+                            element.height / 2,
+                            0, 0, Math.PI * 2
+                        );
+                        ctx.fill();
+                        ctx.stroke();
+                        break;
+                    case 'cylinder':
+                        drawCylinder(element.x, element.y, element.width, element.height);
+                        break;
+                    case 'diamond':
+                        drawDiamond(element.x, element.y, element.width, element.height);
+                        break;
+                    case 'line':
+                        ctx.beginPath();
+                        ctx.moveTo(element.x1, element.y1);
+                        ctx.lineTo(element.x2, element.y2);
+                        ctx.stroke();
+                        break;
+                    case 'arrow':
+                        drawArrow(element.x1, element.y1, element.x2, element.y2, element.strokeColor, element.lineWidth);
+                        break;
+                    case 'bidirectional':
+                        drawBidirectionalArrow(element.x1, element.y1, element.x2, element.y2, element.strokeColor, element.lineWidth);
+                        break;
+                    case 'text':
+                        ctx.fillStyle = element.strokeColor;
+                        ctx.font = `${element.fontSize || 14}px Segoe UI`;
+                        ctx.fillText(element.text, element.x, element.y);
+                        break;
+                }
+
+                // Draw text inside shapes
+                if (element.text && element.type !== 'text' && element.type !== 'line' && element.type !== 'arrow' && element.type !== 'bidirectional') {
+                    ctx.fillStyle = '#000';
+                    ctx.font = `${element.fontSize || 14}px Segoe UI`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const lines = element.text.split('\n');
+                    const lineHeight = (element.fontSize || 14) + 4;
+                    lines.forEach((line, i) => {
+                        ctx.fillText(line, element.x + element.width / 2, element.y + element.height / 2 + (i - lines.length / 2 + 0.5) * lineHeight);
+                    });
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'alphabetic';
+                }
+
+                // Highlight selected element
+                if (isSelected) {
+                    ctx.strokeStyle = '#667eea';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([5, 5]);
+                    if (element.type === 'line' || element.type === 'arrow' || element.type === 'bidirectional') {
+                        ctx.strokeRect(Math.min(element.x1, element.x2) - 5, Math.min(element.y1, element.y2) - 5,
+                            Math.abs(element.x2 - element.x1) + 10, Math.abs(element.y2 - element.y1) + 10);
+                    } else {
+                        ctx.strokeRect(element.x - 5, element.y - 5, element.width + 10, element.height + 10);
+                    }
+                    ctx.setLineDash([]);
+                }
+            });
+        }
+
+        function drawRoundRect(x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function drawCylinder(x, y, width, height) {
+            const ellipseHeight = height * 0.15;
+
+            ctx.beginPath();
+            ctx.ellipse(x + width / 2, y + ellipseHeight / 2, width / 2, ellipseHeight / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillRect(x, y + ellipseHeight / 2, width, height - ellipseHeight);
+            ctx.beginPath();
+            ctx.moveTo(x, y + ellipseHeight / 2);
+            ctx.lineTo(x, y + height - ellipseHeight / 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + width, y + ellipseHeight / 2);
+            ctx.lineTo(x + width, y + height - ellipseHeight / 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.ellipse(x + width / 2, y + height - ellipseHeight / 2, width / 2, ellipseHeight / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function drawDiamond(x, y, width, height) {
+            ctx.beginPath();
+            ctx.moveTo(x + width / 2, y);
+            ctx.lineTo(x + width, y + height / 2);
+            ctx.lineTo(x + width / 2, y + height);
+            ctx.lineTo(x, y + height / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function drawArrow(x1, y1, x2, y2, color, lineWidth) {
+            const headLength = 15 + lineWidth * 2;
+            const headWidth = 8 + lineWidth;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+
+            // Draw line
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Draw arrow head
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(
+                x2 - headLength * Math.cos(angle - Math.PI / 7),
+                y2 - headLength * Math.sin(angle - Math.PI / 7)
+            );
+            ctx.lineTo(
+                x2 - headLength * Math.cos(angle + Math.PI / 7),
+                y2 - headLength * Math.sin(angle + Math.PI / 7)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawBidirectionalArrow(x1, y1, x2, y2, color, lineWidth) {
+            const headLength = 15 + lineWidth * 2;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+
+            // Draw line
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+
+            // Arrow head at end
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(
+                x2 - headLength * Math.cos(angle - Math.PI / 7),
+                y2 - headLength * Math.sin(angle - Math.PI / 7)
+            );
+            ctx.lineTo(
+                x2 - headLength * Math.cos(angle + Math.PI / 7),
+                y2 - headLength * Math.sin(angle + Math.PI / 7)
+            );
+            ctx.closePath();
+            ctx.fill();
+
+            // Arrow head at start
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(
+                x1 + headLength * Math.cos(angle - Math.PI / 7),
+                y1 + headLength * Math.sin(angle - Math.PI / 7)
+            );
+            ctx.lineTo(
+                x1 + headLength * Math.cos(angle + Math.PI / 7),
+                y1 + headLength * Math.sin(angle + Math.PI / 7)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function getElementAtPoint(x, y) {
+            for (let i = elements.length - 1; i >= 0; i--) {
+                const el = elements[i];
+                if (el.type === 'line' || el.type === 'arrow' || el.type === 'bidirectional') {
+                    const dist = pointToLineDistance(x, y, el.x1, el.y1, el.x2, el.y2);
+                    if (dist < 10) return el;
+                } else if (x >= el.x && x <= el.x + el.width && y >= el.y && y <= el.y + el.height) {
+                    return el;
+                }
+            }
+            return null;
+        }
+
+        function pointToLineDistance(px, py, x1, y1, x2, y2) {
+            const A = px - x1;
+            const B = py - y1;
+            const C = x2 - x1;
+            const D = y2 - y1;
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            let param = -1;
+            if (lenSq !== 0) param = dot / lenSq;
+            let xx, yy;
+            if (param < 0) {
+                xx = x1;
+                yy = y1;
+            } else if (param > 1) {
+                xx = x2;
+                yy = y2;
+            } else {
+                xx = x1 + param * C;
+                yy = y1 + param * D;
+            }
+            const dx = px - xx;
+            const dy = py - yy;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function showElementProperties(element) {
+            selectedElement = element;
+            const propsDiv = document.getElementById('selectedElementProps');
+
+            let positionInputs = '';
+            if (element.type === 'line' || element.type === 'arrow' || element.type === 'bidirectional') {
+                positionInputs = `
+                    <div class="property-group">
+                        <label>Start X</label>
+                        <input type="number" id="elementX1" value="${Math.round(element.x1)}">
+                    </div>
+                    <div class="property-group">
+                        <label>Start Y</label>
+                        <input type="number" id="elementY1" value="${Math.round(element.y1)}">
+                    </div>
+                    <div class="property-group">
+                        <label>End X</label>
+                        <input type="number" id="elementX2" value="${Math.round(element.x2)}">
+                    </div>
+                    <div class="property-group">
+                        <label>End Y</label>
+                        <input type="number" id="elementY2" value="${Math.round(element.y2)}">
+                    </div>
+                `;
+            } else {
+                positionInputs = `
+                    <div class="property-group">
+                        <label>X Position</label>
+                        <input type="number" id="elementX" value="${Math.round(element.x)}">
+                    </div>
+                    <div class="property-group">
+                        <label>Y Position</label>
+                        <input type="number" id="elementY" value="${Math.round(element.y)}">
+                    </div>
+                    <div class="property-group">
+                        <label>Width</label>
+                        <input type="number" id="elementWidth" value="${Math.round(element.width)}">
+                    </div>
+                    <div class="property-group">
+                        <label>Height</label>
+                        <input type="number" id="elementHeight" value="${Math.round(element.height)}">
+                    </div>
+                `;
+            }
+
+            propsDiv.innerHTML = `
+                <div class="property-group">
+                    <label>Element Type</label>
+                    <input type="text" value="${element.type}" readonly style="background: #f5f5f5;">
+                </div>
+                ${positionInputs}
+                <div class="property-group">
+                    <label>Text (use \\n for new line)</label>
+                    <textarea id="elementText">${element.text || ''}</textarea>
+                </div>
+                <div class="property-group">
+                    <label>Font Size</label>
+                    <input type="number" id="elementFontSize" value="${element.fontSize || 14}" min="8" max="72">
+                </div>
+                <div class="property-group">
+                    <label>Fill Color</label>
+                    <input type="color" id="elementFill" value="${element.fillColor}">
+                </div>
+                <div class="property-group">
+                    <label>Stroke Color</label>
+                    <input type="color" id="elementStroke" value="${element.strokeColor}">
+                </div>
+                <div class="property-group">
+                    <label>Line Width</label>
+                    <input type="number" id="elementLineWidth" value="${element.lineWidth}" min="1" max="10">
+                </div>
+                <button class="action-button success" onclick="updateElement()">✓ Update</button>
+                <button class="action-button danger" onclick="deleteElement()">✗ Delete</button>
+            `;
+        }
+
+        function updateElement() {
+            if (!selectedElement) return;
+
+            selectedElement.text = document.getElementById('elementText').value;
+            selectedElement.fillColor = document.getElementById('elementFill').value;
+            selectedElement.strokeColor = document.getElementById('elementStroke').value;
+            selectedElement.lineWidth = parseInt(document.getElementById('elementLineWidth').value);
+            selectedElement.fontSize = parseInt(document.getElementById('elementFontSize').value);
+
+            if (selectedElement.type === 'line' || selectedElement.type === 'arrow' || selectedElement.type === 'bidirectional') {
+                selectedElement.x1 = parseInt(document.getElementById('elementX1').value);
+                selectedElement.y1 = parseInt(document.getElementById('elementY1').value);
+                selectedElement.x2 = parseInt(document.getElementById('elementX2').value);
+                selectedElement.y2 = parseInt(document.getElementById('elementY2').value);
+                selectedElement.x = Math.min(selectedElement.x1, selectedElement.x2);
+                selectedElement.y = Math.min(selectedElement.y1, selectedElement.y2);
+            } else {
+                selectedElement.x = parseInt(document.getElementById('elementX').value);
+                selectedElement.y = parseInt(document.getElementById('elementY').value);
+                selectedElement.width = parseInt(document.getElementById('elementWidth').value);
+                selectedElement.height = parseInt(document.getElementById('elementHeight').value);
+            }
+
+            redraw();
+            updateStatus('Element updated');
+        }
+
+        function deleteElement() {
+            if (!selectedElement) return;
+            elements = elements.filter(el => el !== selectedElement);
+            selectedElement = null;
+            document.getElementById('selectedElementProps').innerHTML = '<div class="instructions">Click on an element to edit its properties.<br><br><strong>Tips:</strong><br>• Click to select & drag<br>• Double-click for properties<br>• Delete key to remove</div>';
+            redraw();
+            updateStatus('Element deleted');
+        }
+
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+
+        function clearCanvas() {
+            if (confirm('Are you sure you want to clear the canvas?')) {
+                elements = [];
+                selectedElement = null;
+                redraw();
+                updateStatus('Canvas cleared');
+            }
+        }
+
+        function resizeCanvas() {
+            const size = document.getElementById('canvasSize').value.split(',');
+            canvas.width = parseInt(size[0]);
+            canvas.height = parseInt(size[1]);
+            redraw();
+        }
+
+        function showImportDiagrams() {
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        }
+
+        function importDiagram(diagramName) {
+            elements = [];
+            document.getElementById('diagramTitle').value = diagramName;
+
+            switch(diagramName) {
+                case 'cqrs-flow':
+                    importCQRSFlow();
+                    break;
+                case 'event-sourcing':
+                    importEventSourcing();
+                    break;
+                case 'rabbitmq-arch':
+                    importRabbitMQArch();
+                    break;
+                case 'rabbitmq-vs-es':
+                    importRabbitMQvsES();
+                    break;
+                case 'monitoring':
+                    importMonitoring();
+                    break;
+                case 'complete-system':
+                    importCompleteSystem();
+                    break;
+            }
+
+            redraw();
+            closeModal();
+            updateStatus(`Imported: ${diagramName} - Now you can edit it!`);
+        }
+
+        function importCQRSFlow() {
+            elements = [
+                {type: 'rectangle', x: 100, y: 60, width: 200, height: 80, fillColor: '#e3f2fd', strokeColor: '#2196f3', lineWidth: 2, text: 'Client\nApplication', fontSize: 14},
+                {type: 'rectangle', x: 100, y: 180, width: 200, height: 80, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'API Layer\n(Flask Routes)', fontSize: 14},
+                {type: 'rectangle', x: 60, y: 300, width: 180, height: 100, fillColor: '#ffcdd2', strokeColor: '#f44336', lineWidth: 2, text: 'Command Side\n(Write)', fontSize: 13},
+                {type: 'rectangle', x: 260, y: 300, width: 180, height: 100, fillColor: '#c8e6c9', strokeColor: '#4caf50', lineWidth: 2, text: 'Query Side\n(Read)', fontSize: 13},
+                {type: 'rectangle', x: 60, y: 440, width: 180, height: 80, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'Service Layer', fontSize: 13},
+                {type: 'rectangle', x: 260, y: 440, width: 180, height: 80, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'Service Layer', fontSize: 13},
+                {type: 'cylinder', x: 100, y: 560, width: 120, height: 100, fillColor: '#bbdefb', strokeColor: '#1976d2', lineWidth: 2, text: 'Database', fontSize: 13},
+                {type: 'cylinder', x: 280, y: 560, width: 120, height: 100, fillColor: '#ffe0b2', strokeColor: '#f57c00', lineWidth: 2, text: 'Event Store', fontSize: 13},
+
+                {type: 'arrow', x1: 200, y1: 140, x2: 200, y2: 180, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 150, y1: 260, x2: 150, y2: 300, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 250, y1: 260, x2: 350, y2: 300, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 150, y1: 400, x2: 150, y2: 440, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 350, y1: 400, x2: 350, y2: 440, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 160, y1: 520, x2: 160, y2: 560, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 150, y1: 400, x2: 340, y2: 560, strokeColor: '#f57c00', lineWidth: 2},
+
+                {type: 'text', x: 480, y: 350, text: 'Commands trigger events', strokeColor: '#f44336', fontSize: 12},
+                {type: 'text', x: 480, y: 370, text: 'Queries have no side effects', strokeColor: '#4caf50', fontSize: 12}
+            ];
+        }
+
+        function importEventSourcing() {
+            elements = [
+                {type: 'rectangle', x: 140, y: 60, width: 220, height: 80, fillColor: '#e3f2fd', strokeColor: '#2196f3', lineWidth: 2, text: 'Command Handler', fontSize: 14},
+                {type: 'rectangle', x: 140, y: 180, width: 220, height: 80, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'Event Publisher\n(Dual Write)', fontSize: 14},
+                {type: 'cylinder', x: 60, y: 320, width: 160, height: 120, fillColor: '#ffe0b2', strokeColor: '#f57c00', lineWidth: 3, text: 'Event Store\n(Permanent)', fontSize: 14},
+                {type: 'rectangle', x: 280, y: 320, width: 160, height: 120, fillColor: '#ffcdd2', strokeColor: '#e91e63', lineWidth: 3, text: 'RabbitMQ\n(Temporary)', fontSize: 14},
+                {type: 'rectangle', x: 60, y: 500, width: 380, height: 80, fillColor: '#c8e6c9', strokeColor: '#4caf50', lineWidth: 2, text: 'Event Consumers (Notification, Auth, etc.)', fontSize: 14},
+
+                {type: 'arrow', x1: 250, y1: 140, x2: 250, y2: 180, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 200, y1: 260, x2: 140, y2: 320, strokeColor: '#f57c00', lineWidth: 3},
+                {type: 'arrow', x1: 300, y1: 260, x2: 360, y2: 320, strokeColor: '#e91e63', lineWidth: 3},
+                {type: 'arrow', x1: 140, y1: 440, x2: 140, y2: 500, strokeColor: '#4caf50', lineWidth: 2},
+                {type: 'arrow', x1: 360, y1: 440, x2: 300, y2: 500, strokeColor: '#4caf50', lineWidth: 2},
+
+                {type: 'text', x: 480, y: 360, text: '← Messages deleted', strokeColor: '#e91e63', fontSize: 13},
+                {type: 'text', x: 480, y: 380, text: 'after consumption', strokeColor: '#e91e63', fontSize: 13},
+                {type: 'text', x: 20, y: 480, text: 'Events stored forever', strokeColor: '#f57c00', fontSize: 13}
+            ];
+        }
+
+        function importRabbitMQArch() {
+            elements = [
+                {type: 'rectangle', x: 60, y: 60, width: 160, height: 80, fillColor: '#e3f2fd', strokeColor: '#2196f3', lineWidth: 2, text: 'User Service\nPublisher', fontSize: 13},
+                {type: 'rectangle', x: 260, y: 60, width: 160, height: 80, fillColor: '#e3f2fd', strokeColor: '#2196f3', lineWidth: 2, text: 'Job Service\nPublisher', fontSize: 13},
+                {type: 'roundrect', x: 120, y: 200, width: 240, height: 120, fillColor: '#ffe0b2', strokeColor: '#ff9800', lineWidth: 3, text: 'RabbitMQ\nTopic Exchange\ntalentlink.events', fontSize: 14},
+                {type: 'rectangle', x: 60, y: 380, width: 160, height: 80, fillColor: '#c8e6c9', strokeColor: '#4caf50', lineWidth: 2, text: 'Notification\nConsumer', fontSize: 13},
+                {type: 'rectangle', x: 260, y: 380, width: 160, height: 80, fillColor: '#c8e6c9', strokeColor: '#4caf50', lineWidth: 2, text: 'Auth Service\nConsumer', fontSize: 13},
+
+                {type: 'arrow', x1: 140, y1: 140, x2: 200, y2: 200, strokeColor: '#2196f3', lineWidth: 2},
+                {type: 'arrow', x1: 340, y1: 140, x2: 280, y2: 200, strokeColor: '#2196f3', lineWidth: 2},
+                {type: 'arrow', x1: 200, y1: 320, x2: 140, y2: 380, strokeColor: '#4caf50', lineWidth: 2},
+                {type: 'arrow', x1: 280, y1: 320, x2: 340, y2: 380, strokeColor: '#4caf50', lineWidth: 2},
+
+                {type: 'text', x: 460, y: 100, text: 'Publish events', strokeColor: '#2196f3', fontSize: 12},
+                {type: 'text', x: 460, y: 420, text: 'Subscribe & consume', strokeColor: '#4caf50', fontSize: 12}
+            ];
+        }
+
+        function importRabbitMQvsES() {
+            elements = [
+                {type: 'rectangle', x: 180, y: 60, width: 200, height: 80, fillColor: '#e3f2fd', strokeColor: '#2196f3', lineWidth: 2, text: 'Command Execution', fontSize: 14},
+                {type: 'rectangle', x: 180, y: 180, width: 200, height: 80, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'Event Publisher\n(Dual Write)', fontSize: 14},
+
+                {type: 'cylinder', x: 60, y: 320, width: 160, height: 120, fillColor: '#c8e6c9', strokeColor: '#4caf50', lineWidth: 3, text: 'Event Store\nPermanent', fontSize: 14},
+                {type: 'rectangle', x: 340, y: 320, width: 160, height: 120, fillColor: '#ffe0b2', strokeColor: '#ff9800', lineWidth: 3, text: 'RabbitMQ\nTemporary', fontSize: 14},
+
+                {type: 'rectangle', x: 60, y: 500, width: 160, height: 100, fillColor: '#e8f5e9', strokeColor: '#4caf50', lineWidth: 2, text: 'Purpose:\n• Audit trail\n• Event replay\n• Debugging', fontSize: 11},
+                {type: 'rectangle', x: 340, y: 500, width: 160, height: 100, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'Purpose:\n• Async messaging\n• Service decoupling\n• Real-time', fontSize: 11},
+
+                {type: 'arrow', x1: 280, y1: 140, x2: 280, y2: 180, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 240, y1: 260, x2: 140, y2: 320, strokeColor: '#4caf50', lineWidth: 3},
+                {type: 'arrow', x1: 320, y1: 260, x2: 420, y2: 320, strokeColor: '#ff9800', lineWidth: 3},
+                {type: 'arrow', x1: 140, y1: 440, x2: 140, y2: 500, strokeColor: '#4caf50', lineWidth: 2},
+                {type: 'arrow', x1: 420, y1: 440, x2: 420, y2: 500, strokeColor: '#ff9800', lineWidth: 2},
+
+                {type: 'text', x: 540, y: 360, text: 'Messages DELETED', strokeColor: '#ff9800', fontSize: 13},
+                {type: 'text', x: 540, y: 380, text: 'after consumption', strokeColor: '#ff9800', fontSize: 13},
+                {type: 'text', x: 20, y: 380, text: 'Events stored FOREVER', strokeColor: '#4caf50', fontSize: 13}
+            ];
+        }
+
+        function importMonitoring() {
+            elements = [
+                {type: 'rectangle', x: 200, y: 40, width: 200, height: 60, fillColor: '#e3f2fd', strokeColor: '#2196f3', lineWidth: 2, text: 'Microservices', fontSize: 14},
+
+                {type: 'rectangle', x: 80, y: 160, width: 160, height: 80, fillColor: '#ffe0b2', strokeColor: '#ff9800', lineWidth: 2, text: 'Prometheus\n:9090', fontSize: 14},
+                {type: 'rectangle', x: 360, y: 160, width: 160, height: 80, fillColor: '#c8e6c9', strokeColor: '#4caf50', lineWidth: 2, text: 'Jaeger\n:16686', fontSize: 14},
+
+                {type: 'rectangle', x: 80, y: 300, width: 160, height: 80, fillColor: '#bbdefb', strokeColor: '#1976d2', lineWidth: 2, text: 'Grafana\n:3000', fontSize: 14},
+                {type: 'cylinder', x: 370, y: 300, width: 140, height: 80, fillColor: '#ffe0b2', strokeColor: '#ff9800', lineWidth: 2, text: 'Elasticsearch', fontSize: 13},
+
+                {type: 'arrow', x1: 260, y1: 100, x2: 160, y2: 160, strokeColor: '#ff9800', lineWidth: 2},
+                {type: 'arrow', x1: 340, y1: 100, x2: 440, y2: 160, strokeColor: '#4caf50', lineWidth: 2},
+                {type: 'arrow', x1: 160, y1: 240, x2: 160, y2: 300, strokeColor: '#1976d2', lineWidth: 2},
+                {type: 'arrow', x1: 440, y1: 240, x2: 440, y2: 300, strokeColor: '#ff9800', lineWidth: 2},
+
+                {type: 'text', x: 20, y: 130, text: 'Metrics →', strokeColor: '#ff9800', fontSize: 13},
+                {type: 'text', x: 520, y: 130, text: '← Traces', strokeColor: '#4caf50', fontSize: 13}
+            ];
+        }
+
+        function importCompleteSystem() {
+            elements = [
+                {type: 'rectangle', x: 220, y: 40, width: 160, height: 60, fillColor: '#e3f2fd', strokeColor: '#2196f3', lineWidth: 2, text: 'Client Layer', fontSize: 13},
+                {type: 'rectangle', x: 80, y: 140, width: 140, height: 100, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'User Service\nCQRS', fontSize: 12},
+                {type: 'rectangle', x: 260, y: 140, width: 140, height: 100, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'Job Service\nCQRS', fontSize: 12},
+                {type: 'rectangle', x: 440, y: 140, width: 140, height: 100, fillColor: '#fff3e0', strokeColor: '#ff9800', lineWidth: 2, text: 'Other Services', fontSize: 12},
+
+                {type: 'cylinder', x: 90, y: 280, width: 120, height: 80, fillColor: '#bbdefb', strokeColor: '#1976d2', lineWidth: 2, text: 'User DB', fontSize: 11},
+                {type: 'cylinder', x: 270, y: 280, width: 120, height: 80, fillColor: '#bbdefb', strokeColor: '#1976d2', lineWidth: 2, text: 'Job DB', fontSize: 11},
+                {type: 'cylinder', x: 450, y: 280, width: 120, height: 80, fillColor: '#ffe0b2', strokeColor: '#f57c00', lineWidth: 2, text: 'Event Store', fontSize: 11},
+
+                {type: 'roundrect', x: 200, y: 420, width: 200, height: 80, fillColor: '#ffcdd2', strokeColor: '#e91e63', lineWidth: 3, text: 'RabbitMQ\ntalentlink.events', fontSize: 13},
+
+                {type: 'rectangle', x: 80, y: 560, width: 140, height: 60, fillColor: '#c8e6c9', strokeColor: '#4caf50', lineWidth: 2, text: 'Notification\nService', fontSize: 12},
+                {type: 'rectangle', x: 260, y: 560, width: 140, height: 60, fillColor: '#c8e6c9', strokeColor: '#4caf50', lineWidth: 2, text: 'Auth Service', fontSize: 12},
+
+                {type: 'rectangle', x: 460, y: 420, width: 140, height: 80, fillColor: '#e1f5fe', strokeColor: '#0288d1', lineWidth: 2, text: 'Monitoring\nPrometheus\nGrafana', fontSize: 11},
+
+                {type: 'arrow', x1: 300, y1: 100, x2: 150, y2: 140, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 300, y1: 100, x2: 330, y2: 140, strokeColor: '#000000', lineWidth: 2},
+                {type: 'arrow', x1: 150, y1: 240, x2: 150, y2: 280, strokeColor: '#1976d2', lineWidth: 2},
+                {type: 'arrow', x1: 330, y1: 240, x2: 330, y2: 280, strokeColor: '#1976d2', lineWidth: 2},
+                {type: 'arrow', x1: 400, y1: 240, x2: 510, y2: 280, strokeColor: '#f57c00', lineWidth: 2},
+                {type: 'arrow', x1: 300, y1: 360, x2: 300, y2: 420, strokeColor: '#e91e63', lineWidth: 3},
+                {type: 'arrow', x1: 300, y1: 500, x2: 150, y2: 560, strokeColor: '#4caf50', lineWidth: 2},
+                {type: 'arrow', x1: 300, y1: 500, x2: 330, y2: 560, strokeColor: '#4caf50', lineWidth: 2},
+                {type: 'arrow', x1: 400, y1: 200, x2: 530, y2: 420, strokeColor: '#0288d1', lineWidth: 2}
+            ];
+        }
+
+        function savePreview() {
+            const title = document.getElementById('diagramTitle').value || 'Diagram';
+            document.getElementById('previewTitle').textContent = title;
+
+            const previewCanvas = document.createElement('canvas');
+            previewCanvas.width = canvas.width;
+            previewCanvas.height = canvas.height;
+            const previewCtx = previewCanvas.getContext('2d');
+
+            previewCtx.fillStyle = 'white';
+            previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+            previewCtx.drawImage(canvas, 0, 0);
+
+            const previewImg = document.createElement('img');
+            previewImg.src = previewCanvas.toDataURL();
+            previewImg.style.maxWidth = '100%';
+            previewImg.style.border = '2px solid #e0e0e0';
+            previewImg.style.borderRadius = '8px';
+
+            const previewContent = document.getElementById('previewContent');
+            previewContent.innerHTML = '';
+            previewContent.appendChild(previewImg);
+
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'action-button success';
+            downloadBtn.textContent = 'Download This Preview';
+            downloadBtn.style.marginTop = '20px';
+            downloadBtn.onclick = exportPNG;
+            previewContent.appendChild(downloadBtn);
+
+            document.getElementById('previewModal').classList.add('active');
+            updateStatus('Preview generated - This is non-editable');
+        }
+
+        function exportPNG() {
+            const link = document.createElement('a');
+            const title = document.getElementById('diagramTitle').value.replace(/\s+/g, '_') || 'diagram';
+            link.download = `${title}.png`;
+
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            const exportCtx = exportCanvas.getContext('2d');
+
+            exportCtx.fillStyle = 'white';
+            exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            exportCtx.drawImage(canvas, 0, 0);
+
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+            updateStatus('PNG exported: ' + title + '.png');
+        }
+
+        function exportSVG() {
+            alert('SVG export: For best results, use PNG export. SVG export requires additional rendering which may not preserve all visual elements perfectly.');
+        }
+
+        function saveToJSON() {
+            const data = {
+                title: document.getElementById('diagramTitle').value,
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                elements: elements
+            };
+
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const title = document.getElementById('diagramTitle').value.replace(/\s+/g, '_') || 'diagram';
+            link.download = `${title}.json`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+            updateStatus('Saved to JSON: ' + title + '.json');
+        }
+
+        function loadFromJSON() {
+            document.getElementById('jsonFileInput').click();
+        }
+
+        function handleJSONLoad(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    document.getElementById('diagramTitle').value = data.title || 'Imported Diagram';
+                    canvas.width = data.canvasWidth || 2000;
+                    canvas.height = data.canvasHeight || 1500;
+                    elements = data.elements || [];
+                    redraw();
+                    updateStatus('Loaded from JSON: ' + file.name);
+                } catch (error) {
+                    alert('Error loading JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Initialize first tool
+        document.querySelector('.tool-button').classList.add('active');
+    </script>
+</body>
+</html>

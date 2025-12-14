@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentLink Architecture Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #34495e;
+            padding: 15px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 25px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .diagram-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .diagram-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .diagram-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            min-height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .description {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .description h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .description p {
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .summary-box h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .summary-box ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .summary-box li {
+            padding: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .summary-box li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .toc {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .toc ul {
+            list-style-type: none;
+        }
+
+        .toc li {
+            padding: 8px 0;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        @media print {
+            .download-buttons {
+                display: none;
+            }
+            nav {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .diagram-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .download-buttons {
+                margin-top: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TalentLink Architecture Diagrams</h1>
+            <p>Comprehensive visualization of CQRS, Event Sourcing, RabbitMQ, and Monitoring Systems</p>
+        </header>
+
+        <nav>
+            <a href="#cqrs">CQRS Pattern</a>
+            <a href="#event-sourcing">Event Sourcing</a>
+            <a href="#rabbitmq">RabbitMQ Integration</a>
+            <a href="#monitoring">Monitoring System</a>
+            <a href="#summary">Summary</a>
+        </nav>
+
+        <div class="content">
+            <!-- Table of Contents -->
+            <div class="toc">
+                <h3>Table of Contents</h3>
+                <ul>
+                    <li><a href="#cqrs">1. CQRS Pattern Implementation (3 diagrams)</a></li>
+                    <li><a href="#event-sourcing">2. Event Sourcing Architecture (4 diagrams)</a></li>
+                    <li><a href="#rabbitmq">3. RabbitMQ Integration Flow (5 diagrams)</a></li>
+                    <li><a href="#monitoring">4. Monitoring System Architecture (5 diagrams)</a></li>
+                    <li><a href="#summary">5. Summary & Key Insights</a></li>
+                </ul>
+            </div>
+
+            <!-- SECTION 1: CQRS PATTERN -->
+            <section id="cqrs" class="section">
+                <h2 class="section-title">1. CQRS Pattern Implementation</h2>
+
+                <!-- Diagram 1.1 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">1.1 CQRS Flow Diagram</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-cqrs-flow', 'CQRS_Flow_Diagram')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-cqrs-flow', 'CQRS_Flow_Diagram')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-cqrs-flow">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'linear','nodeSpacing':80,'rankSpacing':80}}}%%
+graph TB
+    Client[Client Application]
+
+    POST[POST Endpoints - Write]
+    GET[GET Endpoints - Read]
+
+    CmdHandler[Command Handlers]
+    QryHandler[Query Handlers]
+
+    Services[Business Services]
+
+    Repos[Repositories]
+
+    DB[(PostgreSQL Database)]
+
+    EventPub[Event Publisher]
+    EventStore[(Event Store)]
+    RMQ[RabbitMQ]
+
+    Client --> POST
+    Client --> GET
+
+    POST --> CmdHandler
+    GET --> QryHandler
+
+    CmdHandler --> Services
+    QryHandler --> Services
+
+    Services --> Repos
+    Repos --> DB
+
+    Services --> EventPub
+    EventPub --> EventStore
+    EventPub --> RMQ
+
+    style CmdHandler fill:#ffcdd2
+    style QryHandler fill:#c8e6c9
+    style POST fill:#ffcdd2
+    style GET fill:#c8e6c9
+    style EventStore fill:#ffe0b2
+    style EventPub fill:#ffe0b2
+    style RMQ fill:#e1bee7
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>This diagram shows the complete CQRS pattern implementation. Commands (red) handle write operations and trigger events, while Queries (green) handle read operations without side effects. The separation ensures scalability and maintainability.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 1.2 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">1.2 CQRS Sequence - Create User (Command)</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-cqrs-create', 'CQRS_Create_User_Sequence')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-cqrs-create', 'CQRS_Create_User_Sequence')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-cqrs-create">
+%%{init: {'theme':'base', 'themeVariables': {'actorBkg':'#e3f2fd','actorBorder':'#2196f3','actorTextColor':'#000','actorLineColor':'#1976d2','signalColor':'#1976d2','signalTextColor':'#000','labelBoxBkgColor':'#fff','labelBoxBorderColor':'#9e9e9e','labelTextColor':'#000','loopTextColor':'#000','noteBorderColor':'#ff9800','noteBkgColor':'#fff3e0','noteTextColor':'#000','activationBorderColor':'#666','activationBkgColor':'#f5f5f5','sequenceNumberColor':'#fff'}}}%%
+sequenceDiagram
+    participant Client
+    participant Route as Flask Route
+    participant Cmd as Command Handler
+    participant Svc as UserProfileService
+    participant Repo as UserProfileRepository
+    participant DB as PostgreSQL
+    participant Pub as EventPublisher
+    participant ES as Event Store
+    participant MQ as RabbitMQ
+
+    Client->>Route: POST /api/users<br/>{username, email, role}
+    Route->>Route: Create CreateUserProfileCommand
+    Route->>Cmd: handle_create_profile(command)
+    Cmd->>Svc: create_profile(data)
+    Svc->>Svc: Validate business rules
+    Svc->>Repo: create(user_data)
+    Repo->>DB: INSERT INTO user_profiles
+    DB-->>Repo: user_id
+    Repo-->>Svc: UserProfile object
+    Svc-->>Cmd: UserProfile object
+
+    Cmd->>Pub: publish_event("UserCreated", data)
+    Pub->>ES: INSERT INTO events<br/>{event_type, aggregate_id, event_data}
+    ES-->>Pub: event_id
+    Pub->>MQ: publish(exchange="talentlink.events",<br/>routing_key="user.created")
+    MQ-->>Pub: ack
+    Pub-->>Cmd: success
+
+    Cmd-->>Route: UserProfile object
+    Route-->>Client: 201 Created<br/>{user_id, username, email}
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Sequence diagram showing a write operation (Command). The command handler modifies state, stores data in PostgreSQL, then publishes an event to both the Event Store (permanent record) and RabbitMQ (for service communication).</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 1.3 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">1.3 CQRS Sequence - Get Jobs (Query)</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-cqrs-query', 'CQRS_Get_Jobs_Query_Sequence')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-cqrs-query', 'CQRS_Get_Jobs_Query_Sequence')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-cqrs-query">
+%%{init: {'theme':'base', 'themeVariables': {'actorBkg':'#e8f5e9','actorBorder':'#4caf50','actorTextColor':'#000','actorLineColor':'#388e3c','signalColor':'#388e3c','signalTextColor':'#000','labelBoxBkgColor':'#fff','labelBoxBorderColor':'#9e9e9e','labelTextColor':'#000','loopTextColor':'#000','noteBorderColor':'#4caf50','noteBkgColor':'#e8f5e9','noteTextColor':'#000','activationBorderColor':'#666','activationBkgColor':'#f5f5f5','sequenceNumberColor':'#fff'}}}%%
+sequenceDiagram
+    participant Client
+    participant Route as Flask Route
+    participant Qry as Query Handler
+    participant Svc as JobService
+    participant Repo as JobRepository
+    participant DB as PostgreSQL
+
+    Client->>Route: GET /api/jobs
+    Route->>Route: Create GetAllJobsQuery
+    Route->>Qry: handle_get_all_jobs(query)
+    Qry->>Svc: get_all_jobs()
+    Svc->>Repo: get_all()
+    Repo->>DB: SELECT * FROM jobs
+    DB-->>Repo: List of job records
+    Repo-->>Svc: List[Job]
+    Svc-->>Qry: List[Job]
+    Qry-->>Route: List[Job]
+    Route-->>Client: 200 OK<br/>[{job_id, title, description}]
+
+    Note over Qry,DB: No events published<br/>Read-only operation
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Sequence diagram showing a read operation (Query). Notice there are NO events published - queries are strictly read-only with no side effects. This is a key principle of CQRS pattern.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: EVENT SOURCING -->
+            <section id="event-sourcing" class="section">
+                <h2 class="section-title">2. Event Sourcing Architecture</h2>
+
+                <!-- Diagram 2.1 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">2.1 Event Sourcing Flow Diagram</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-es-flow', 'Event_Sourcing_Flow')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-es-flow', 'Event_Sourcing_Flow')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-es-flow">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph LR
+    Cmd[Command Handler] --> Exec[Execute]
+    Exec --> State[Update State]
+    State --> StateDB[(Current State DB)]
+    State --> GenEvent[Generate Event]
+    GenEvent --> EventPub[Event Publisher]
+
+    EventPub --> WriteES[Write Event Store]
+    EventPub --> WriteMQ[Publish RabbitMQ]
+
+    WriteES --> EventDB[(Event Store)]
+    WriteMQ --> MsgQueue[RabbitMQ Broker]
+
+    EventDB -.Event Replay.-> Rebuild[Rebuild State]
+    Rebuild -.-> StateDB
+
+    MsgQueue --> NotifSvc[Notification Service]
+    MsgQueue --> AuthSvc[Auth Service]
+    MsgQueue --> OtherSvc[Other Services]
+
+    style EventDB fill:#ffe0b2
+    style StateDB fill:#bbdefb
+    style WriteES fill:#ffcdd2
+    style WriteMQ fill:#ffcdd2
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Complete event sourcing architecture showing the dual-write pattern. Events are stored permanently in the Event Store and published to RabbitMQ for real-time communication. The Event Store enables event replay to rebuild state.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 2.2 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">2.2 Event Store Schema</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-es-schema', 'Event_Store_Schema')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-es-schema', 'Event_Store_Schema')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-es-schema">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e1f5fe','primaryTextColor':'#000','primaryBorderColor':'#01579b','lineColor':'#0277bd','fontSize':'14px'}}}%%
+erDiagram
+    EVENTS {
+        int event_id PK "Auto-increment"
+        varchar event_type "UserCreated, ApplicationAccepted"
+        varchar aggregate_id "user_id, application_id"
+        varchar aggregate_type "UserProfile, JobApplication"
+        json event_data "Complete event payload"
+        varchar user_id "Who triggered the event"
+        datetime timestamp "When event occurred"
+        int version "Schema version"
+    }
+
+    AGGREGATES {
+        varchar id "Aggregate ID"
+        varchar type "Aggregate Type"
+        json state "Current State"
+    }
+
+    EVENTS ||--o{ AGGREGATES : "reconstructs"
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Entity-relationship diagram showing the Event Store table structure. Every domain event is stored with complete metadata and payload, enabling full audit trail and state reconstruction.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 2.3 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">2.3 Event Sourcing Detailed Sequence</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-es-sequence', 'Event_Sourcing_Detailed_Sequence')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-es-sequence', 'Event_Sourcing_Detailed_Sequence')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-es-sequence">
+%%{init: {'theme':'base', 'themeVariables': {'actorBkg':'#e3f2fd','actorBorder':'#2196f3','actorTextColor':'#000','actorLineColor':'#1976d2','signalColor':'#1976d2','signalTextColor':'#000','labelBoxBkgColor':'#fff','labelBoxBorderColor':'#9e9e9e','labelTextColor':'#000','loopTextColor':'#000','noteBorderColor':'#ff9800','noteBkgColor':'#fff3e0','noteTextColor':'#000','activationBorderColor':'#666','activationBkgColor':'#f5f5f5','sequenceNumberColor':'#fff'}}}%%
+sequenceDiagram
+    participant Cmd as Command Handler
+    participant Agg as Aggregate
+    participant State as State Repository
+    participant Pub as Event Publisher
+    participant ES as Event Store DB
+    participant MQ as RabbitMQ
+    participant Consumer as Event Consumer
+
+    Cmd->>Agg: Execute Command
+    Agg->>Agg: Validate Business Rules
+    Agg->>State: Update Current State
+    State->>State: INSERT/UPDATE entity
+    State-->>Agg: Success
+
+    Agg->>Pub: Generate Domain Event
+    Note over Pub: event_type: "UserCreated"<br/>aggregate_id: "user123"<br/>event_data: {...}
+
+    par Dual Write Pattern
+        Pub->>ES: Store Event (Append-Only)
+        Note over ES: INSERT INTO events<br/>VALUES (event_type, aggregate_id,<br/>event_data, timestamp)
+        ES-->>Pub: event_id
+    and
+        Pub->>MQ: Publish Event Message
+        Note over MQ: exchange: talentlink.events<br/>routing_key: user.created<br/>delivery_mode: persistent
+        MQ-->>Pub: ack
+    end
+
+    Pub-->>Cmd: Event Published
+
+    MQ->>Consumer: Deliver Event Message
+    Consumer->>Consumer: Process Event
+    Note over Consumer: e.g., Send email,<br/>Update read model,<br/>Trigger workflow
+    Consumer-->>MQ: ack
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Detailed sequence showing the dual-write pattern in action. Events are written to both Event Store (permanent) and RabbitMQ (temporary messaging) in parallel, ensuring both audit trail and real-time service communication.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 2.4 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">2.4 Event Sourcing vs Traditional State</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-es-vs-traditional', 'Event_Sourcing_vs_Traditional')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-es-vs-traditional', 'Event_Sourcing_vs_Traditional')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-es-vs-traditional">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph TB
+    subgraph Traditional["Traditional CRUD - History Lost"]
+        TCRUD[Update Database] --> TDB[(Current State Only)]
+        TDB --> TLost[❌ Previous States Lost]
+    end
+
+    subgraph EventSourced["Event Sourcing - Complete History"]
+        ECRUD[Generate Event] --> EStore[(Event Store All Events)]
+        EStore --> ECurrent[(Current State)]
+        EStore --> EReplay[✓ Event Replay]
+        EStore --> EAudit[✓ Full Audit Trail]
+        EStore --> EDebug[✓ Time Travel Debug]
+    end
+
+    style TLost fill:#ffcdd2
+    style EStore fill:#c8e6c9
+    style EAudit fill:#c8e6c9
+    style EDebug fill:#c8e6c9
+    style EReplay fill:#c8e6c9
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Comparison between traditional CRUD (left) where history is lost, and Event Sourcing (right) which preserves complete history, enables event replay, provides full audit trail, and allows time-travel debugging.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: RABBITMQ -->
+            <section id="rabbitmq" class="section">
+                <h2 class="section-title">3. RabbitMQ Integration Flow</h2>
+
+                <!-- Diagram 3.1 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">3.1 RabbitMQ Architecture Overview</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-rabbitmq-arch', 'RabbitMQ_Architecture')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-rabbitmq-arch', 'RabbitMQ_Architecture')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-rabbitmq-arch">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph LR
+    UserSvc[User Service] --> Exchange[Topic Exchange<br/>talentlink.events]
+    JobSvc[Job Service] --> Exchange
+
+    Exchange -->|application.accepted| Q1[Queue: notification.application.accepted]
+    Exchange -->|user.deleted| Q2[Queue: auth.user.deleted]
+
+    Q1 --> NotifConsumer[Notification Service]
+    Q2 --> AuthConsumer[Auth Service]
+
+    NotifConsumer --> SendEmail[Send Email]
+    AuthConsumer --> DeleteKeycloak[Delete Keycloak User]
+
+    style Exchange fill:#ffe0b2
+    style Q1 fill:#bbdefb
+    style Q2 fill:#bbdefb
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Complete RabbitMQ architecture showing publishers (User Service, Job Service) publishing to a topic exchange, which routes messages to durable queues based on routing keys. Consumers subscribe to specific queues and perform actions.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 3.2 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">3.2 RabbitMQ Flow - Application Accepted</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-rabbitmq-app', 'RabbitMQ_Application_Accepted')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-rabbitmq-app', 'RabbitMQ_Application_Accepted')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-rabbitmq-app">
+%%{init: {'theme':'base', 'themeVariables': {'actorBkg':'#e3f2fd','actorBorder':'#2196f3','actorTextColor':'#000','actorLineColor':'#1976d2','signalColor':'#1976d2','signalTextColor':'#000','labelBoxBkgColor':'#fff','labelBoxBorderColor':'#9e9e9e','labelTextColor':'#000','loopTextColor':'#000','noteBorderColor':'#ff9800','noteBkgColor':'#fff3e0','noteTextColor':'#000','activationBorderColor':'#666','activationBkgColor':'#f5f5f5','sequenceNumberColor':'#fff'}}}%%
+sequenceDiagram
+    participant Client
+    participant JobSvc as Job Service
+    participant Pub as Event Publisher
+    participant ES as Event Store
+    participant MQ as RabbitMQ Exchange
+    participant Queue as notification.application.accepted
+    participant Consumer as Notification Consumer
+    participant Email as Email Service
+    participant Employee
+
+    Client->>JobSvc: PUT /api/applications/{id}/status<br/>{status: "accepted"}
+    JobSvc->>JobSvc: Update application status
+    JobSvc->>Pub: publish_event("ApplicationAccepted", data)
+
+    Pub->>ES: Store event in database
+    ES-->>Pub: event_id
+
+    Pub->>MQ: publish(exchange="talentlink.events",<br/>routing_key="application.accepted")
+
+    MQ->>Queue: Route message by key
+    Queue->>Consumer: Deliver message (QoS: 1)
+
+    Consumer->>Consumer: Parse event data
+    Consumer->>JobSvc: GET /api/jobs/{job_id}
+    JobSvc-->>Consumer: {title: "Software Engineer"}
+
+    Consumer->>Email: Send email notification
+    Note over Email: To: employee@email.com<br/>Subject: Application Accepted<br/>Body: Your application was accepted
+
+    Email->>Employee: Email delivered
+    Employee-->>Email: Email received
+
+    Email-->>Consumer: Email sent successfully
+    Consumer->>Queue: ack message
+    Queue-->>MQ: message consumed
+
+    alt Email send fails
+        Email--XConsumer: Error
+        Consumer->>Consumer: Retry (10 attempts, 5s delay)
+        Consumer->>Queue: nack & requeue
+    end
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Detailed message flow when an application is accepted. The event flows from Job Service → Event Store → RabbitMQ → Notification Service → Email to employee. Includes retry logic for failures.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 3.3 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">3.3 RabbitMQ Flow - User Deleted</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-rabbitmq-user', 'RabbitMQ_User_Deleted')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-rabbitmq-user', 'RabbitMQ_User_Deleted')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-rabbitmq-user">
+%%{init: {'theme':'base', 'themeVariables': {'actorBkg':'#fce4ec','actorBorder':'#c2185b','actorTextColor':'#000','actorLineColor':'#ad1457','signalColor':'#ad1457','signalTextColor':'#000','labelBoxBkgColor':'#fff','labelBoxBorderColor':'#9e9e9e','labelTextColor':'#000','loopTextColor':'#000','noteBorderColor':'#f44336','noteBkgColor':'#ffebee','noteTextColor':'#000','activationBorderColor':'#666','activationBkgColor':'#f5f5f5','sequenceNumberColor':'#fff'}}}%%
+sequenceDiagram
+    participant Client
+    participant UserSvc as User Service
+    participant Pub as Event Publisher
+    participant ES as Event Store
+    participant MQ as RabbitMQ Exchange
+    participant Queue as auth.user.deleted
+    participant Consumer as Auth Consumer
+    participant Keycloak
+
+    Client->>UserSvc: DELETE /api/users/{user_id}
+    UserSvc->>UserSvc: Delete user from database
+    UserSvc->>Pub: publish_event("UserDeleted", {user_id})
+
+    Pub->>ES: Store event
+    ES-->>Pub: event_id
+
+    Pub->>MQ: publish(exchange="talentlink.events",<br/>routing_key="user.deleted")
+
+    MQ->>Queue: Route message
+    Queue->>Consumer: Deliver message (QoS: 1)
+
+    Consumer->>Consumer: Extract user_id from event
+    Consumer->>Keycloak: DELETE /admin/realms/{realm}/users/{user_id}
+
+    alt Keycloak delete succeeds
+        Keycloak-->>Consumer: 204 No Content
+        Consumer->>Queue: ack message
+        Queue-->>MQ: message consumed
+    else Keycloak delete fails
+        Keycloak--XConsumer: Error (503, 500, etc.)
+        Consumer->>Consumer: Retry logic<br/>(10 attempts, 5s delay)
+        Consumer->>Keycloak: Retry DELETE
+        alt Retry succeeds
+            Keycloak-->>Consumer: 204 No Content
+            Consumer->>Queue: ack message
+        else All retries fail
+            Consumer->>Queue: nack & requeue or dead-letter
+        end
+    end
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Message flow when a user is deleted. The User Service publishes a UserDeleted event, which flows to Auth Service via RabbitMQ, triggering deletion from Keycloak. Includes comprehensive error handling and retry logic.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 3.4 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">3.4 RabbitMQ Event Types and Routing</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-rabbitmq-routing', 'RabbitMQ_Event_Routing')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-rabbitmq-routing', 'RabbitMQ_Event_Routing')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-rabbitmq-routing">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph LR
+    E1[UserCreated] --> R1[user.created]
+    E2[UserUpdated] --> R2[user.updated]
+    E3[UserDeleted] --> R3[user.deleted]
+    E4[ApplicationAccepted] --> R4[application.accepted]
+    E5[ApplicationRejected] --> R5[application.rejected]
+    E6[JobCreated] --> R6[job.created]
+    E7[JobUpdated] --> R7[job.updated]
+
+    R1 -.-> S3[analytics.*]
+    R2 -.-> S3
+    R3 --> S2[auth.user.deleted]
+    R4 --> S1[notification.application.accepted]
+    R6 -.-> S3
+    R7 -.-> S3
+
+    style R4 fill:#c8e6c9
+    style R3 fill:#c8e6c9
+    style S1 fill:#ffe0b2
+    style S2 fill:#ffe0b2
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Shows how domain events (CamelCase) are converted to routing keys (snake_case) and routed to appropriate queues. Topic exchange allows flexible pattern matching for queue bindings.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 3.5 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">3.5 RabbitMQ vs Event Store Relationship</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-rabbitmq-vs-es', 'RabbitMQ_vs_EventStore')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-rabbitmq-vs-es', 'RabbitMQ_vs_EventStore')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-rabbitmq-vs-es">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph LR
+    Command[Command Handler] --> StateChange[State Change in DB]
+    StateChange --> EventGen[Generate Event]
+    EventGen --> Publisher[Event Publisher]
+
+    Publisher --> EventStore[(Event Store DB<br/>✓ PERMANENT)]
+    Publisher --> MQ[RabbitMQ<br/>✗ TEMPORARY]
+
+    EventStore --> ESPurpose[Audit trail<br/>Event replay<br/>Debugging<br/>Compliance]
+    MQ --> MQPurpose[Async communication<br/>Service decoupling<br/>Message delivery]
+
+    style EventStore fill:#c8e6c9
+    style MQ fill:#ffe0b2
+    style ESPurpose fill:#c8e6c9
+    style MQPurpose fill:#fff3e0
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p><strong>KEY INSIGHT:</strong> This answers your question! RabbitMQ messages are deleted after consumption (temporary), but Event Store keeps events forever (permanent). Both serve different purposes: Event Store for audit/replay, RabbitMQ for real-time messaging.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: MONITORING -->
+            <section id="monitoring" class="section">
+                <h2 class="section-title">4. Monitoring System Architecture</h2>
+
+                <!-- Diagram 4.1 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">4.1 Monitoring Infrastructure Overview</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-monitoring-infra', 'Monitoring_Infrastructure')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-monitoring-infra', 'Monitoring_Infrastructure')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-monitoring-infra">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph LR
+    subgraph Services["All Microservices"]
+        MS[User, Job, Auth, CV<br/>Matching, Notification]
+    end
+
+    MS -->|/metrics| Prometheus[Prometheus<br/>:9090]
+    MS -->|traces| Jaeger[Jaeger<br/>:16686]
+
+    Prometheus --> PromStorage[(Prometheus Storage<br/>10Gi)]
+    Jaeger --> ElasticSearch[(Elasticsearch<br/>5Gi)]
+
+    Prometheus --> Grafana[Grafana<br/>:3000]
+    Jaeger --> JaegerUI[Jaeger Query UI]
+
+    Grafana --> DevOps[DevOps Engineer]
+    JaegerUI --> Developer[Developer]
+    Grafana --> Developer
+
+    style Prometheus fill:#ffe0b2
+    style Grafana fill:#bbdefb
+    style Jaeger fill:#c8e6c9
+    style ElasticSearch fill:#ffe0b2
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Complete monitoring infrastructure showing two parallel paths: Metrics (Prometheus → Grafana) and Traces (OpenTelemetry → Jaeger → Elasticsearch). All microservices are instrumented with both systems.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 4.2 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">4.2 Prometheus Scraping Flow</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-prometheus-flow', 'Prometheus_Scraping_Flow')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-prometheus-flow', 'Prometheus_Scraping_Flow')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-prometheus-flow">
+%%{init: {'theme':'base', 'themeVariables': {'actorBkg':'#fff3e0','actorBorder':'#ff9800','actorTextColor':'#000','actorLineColor':'#f57c00','signalColor':'#f57c00','signalTextColor':'#000','labelBoxBkgColor':'#fff','labelBoxBorderColor':'#9e9e9e','labelTextColor':'#000','loopTextColor':'#000','noteBorderColor':'#ff9800','noteBkgColor':'#fff3e0','noteTextColor':'#000','activationBorderColor':'#666','activationBkgColor':'#f5f5f5','sequenceNumberColor':'#fff'}}}%%
+sequenceDiagram
+    participant Prom as Prometheus Server
+    participant K8s as Kubernetes API
+    participant UserSvc as User Service Pod
+    participant JobSvc as Job Service Pod
+
+    loop Every 15 seconds
+        Prom->>K8s: Discover pods with prometheus.io annotations
+        K8s-->>Prom: List of annotated pods
+
+        Prom->>UserSvc: GET /metrics
+        UserSvc->>UserSvc: Collect metrics<br/>(requests, latency, errors, DB queries)
+        UserSvc-->>Prom: Prometheus format metrics
+
+        Prom->>JobSvc: GET /metrics
+        JobSvc->>JobSvc: Collect metrics
+        JobSvc-->>Prom: Prometheus format metrics
+
+        Prom->>Prom: Store time-series data
+    end
+
+    Note over Prom: Metrics stored for querying<br/>and visualization in Grafana
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Shows how Prometheus discovers service pods via Kubernetes API and scrapes metrics every 15 seconds. Services expose /metrics endpoints, and Prometheus stores time-series data for querying.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 4.3 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">4.3 Jaeger Distributed Tracing Flow</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-jaeger-flow', 'Jaeger_Tracing_Flow')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-jaeger-flow', 'Jaeger_Tracing_Flow')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-jaeger-flow">
+%%{init: {'theme':'base', 'themeVariables': {'actorBkg':'#e8f5e9','actorBorder':'#4caf50','actorTextColor':'#000','actorLineColor':'#388e3c','signalColor':'#388e3c','signalTextColor':'#000','labelBoxBkgColor':'#fff','labelBoxBorderColor':'#9e9e9e','labelTextColor':'#000','loopTextColor':'#000','noteBorderColor':'#4caf50','noteBkgColor':'#e8f5e9','noteTextColor':'#000','activationBorderColor':'#666','activationBkgColor':'#f5f5f5','sequenceNumberColor':'#fff'}}}%%
+sequenceDiagram
+    participant Client
+    participant UserSvc as User Service
+    participant OTel as OpenTelemetry SDK
+    participant Jaeger as Jaeger Agent
+    participant Collector as Jaeger Collector
+    participant ES as Elasticsearch
+    participant UI as Jaeger UI
+    participant Dev as Developer
+
+    Client->>UserSvc: GET /api/users/{id}
+    activate UserSvc
+
+    UserSvc->>OTel: Start span "GET /api/users/{id}"
+    OTel->>OTel: Add span attributes<br/>(method, path, user_id)
+
+    UserSvc->>UserSvc: Query Database
+    UserSvc->>OTel: Start span "SELECT user_profiles"
+    OTel->>OTel: Add DB span attributes<br/>(query, duration)
+    OTel->>OTel: End DB span
+
+    UserSvc-->>Client: 200 OK {user}
+    deactivate UserSvc
+
+    UserSvc->>OTel: End request span
+    OTel->>Jaeger: Send span data (UDP 6831)
+    Jaeger->>Collector: Forward spans
+    Collector->>ES: Index trace data
+
+    Dev->>UI: Open Jaeger UI (:16686)
+    UI->>ES: Query traces<br/>(service, operation, tags)
+    ES-->>UI: Trace results
+    UI-->>Dev: Display trace timeline<br/>with spans, latency, errors
+
+    Note over Dev: Developer can see:<br/>- Request flow<br/>- Service dependencies<br/>- Latency bottlenecks<br/>- Error locations
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Shows how distributed tracing works. OpenTelemetry creates spans for each operation (HTTP request, DB query), sends to Jaeger, which stores in Elasticsearch. Developers visualize traces to debug performance and errors.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 4.4 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">4.4 Monitoring Data Flow</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-monitoring-data', 'Monitoring_Data_Flow')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-monitoring-data', 'Monitoring_Data_Flow')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-monitoring-data">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph TB
+    subgraph MetricsPath["Metrics Path - System Health"]
+        Apps1[Applications] --> M1[Prometheus Exporter]
+        M1 --> M2[/metrics endpoint]
+        M2 --> M3[Prometheus Server]
+        M3 --> M4[(Storage)]
+        M4 --> M5[Grafana]
+        M5 --> M6[Dashboards]
+    end
+
+    subgraph TracesPath["Traces Path - Request Flow"]
+        Apps2[Applications] --> T1[OpenTelemetry SDK]
+        T1 --> T2[Jaeger Agent]
+        T2 --> T3[Jaeger Collector]
+        T3 --> T4[(Elasticsearch)]
+        T4 --> T5[Jaeger Query]
+        T5 --> T6[Trace Viewer]
+    end
+
+    style M4 fill:#ffe0b2
+    style T4 fill:#ffe0b2
+    style M6 fill:#bbdefb
+    style T6 fill:#bbdefb
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Simplified view showing two parallel monitoring paths: Metrics path (top) for system health/performance, and Traces path (bottom) for request flow and debugging. Both paths end in visualization tools.</p>
+                    </div>
+                </div>
+
+                <!-- Diagram 4.5 -->
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">4.5 Monitoring Stack Components</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-monitoring-stack', 'Monitoring_Stack_Components')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-monitoring-stack', 'Monitoring_Stack_Components')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-monitoring-stack">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph LR
+    subgraph Services["6 Microservices"]
+        S[user, job, auth<br/>cv, matching, notification]
+    end
+
+    subgraph MonStack["Monitoring Stack"]
+        P[Prometheus<br/>:9090, 10Gi]
+        G[Grafana<br/>:3000, 2Gi]
+        J[Jaeger<br/>:16686]
+        E[Elasticsearch<br/>:9200, 5Gi]
+    end
+
+    S --> P
+    S --> J
+    P --> G
+    J --> E
+
+    style P fill:#ffe0b2
+    style G fill:#bbdefb
+    style J fill:#c8e6c9
+    style E fill:#ffe0b2
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>Complete monitoring stack showing all components with ports, storage, and configurations. All 6 microservices feed data into both Prometheus (metrics) and Jaeger (traces), with ConfigMaps providing configuration.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: SUMMARY -->
+            <section id="summary" class="section">
+                <h2 class="section-title">5. Summary & Key Insights</h2>
+
+                <div class="summary-box">
+                    <h3>How CQRS, Event Sourcing, and RabbitMQ Work Together</h3>
+                    <ul>
+                        <li><strong>CQRS Pattern:</strong> Separates write operations (Commands) from read operations (Queries). Commands modify state and trigger events, Queries only read data.</li>
+                        <li><strong>Event Sourcing:</strong> Stores ALL changes as events in an append-only Event Store database (events table). Provides complete audit trail and event replay capability.</li>
+                        <li><strong>RabbitMQ Integration:</strong> After events are stored in Event Store, they're published to RabbitMQ for asynchronous service communication.</li>
+                        <li><strong>Dual Write Pattern:</strong> Event Publisher writes to BOTH Event Store (permanent) AND RabbitMQ (temporary messaging).</li>
+                        <li><strong>Key Difference:</strong> RabbitMQ messages are DELETED after consumption, but Event Store keeps events FOREVER.</li>
+                    </ul>
+                </div>
+
+                <div class="summary-box">
+                    <h3>Answer to Your Question: "Does storing RabbitMQ messages in database = Event Sourcing?"</h3>
+                    <ul>
+                        <li><strong>Event Store (Database):</strong> Permanent record of all domain events. Used for audit trail, event replay, debugging, and compliance. Events NEVER deleted.</li>
+                        <li><strong>RabbitMQ (Message Broker):</strong> Temporary messaging for real-time service communication. Messages DELETED after consumption. Used for async processing and service decoupling.</li>
+                        <li><strong>The Pattern:</strong> Command → Update State → Generate Event → Publisher writes to BOTH Event Store AND RabbitMQ</li>
+                        <li><strong>Why Both?</strong> Event Store = History & Audit. RabbitMQ = Real-time Communication.</li>
+                        <li><strong>Event Sourcing ≠ Just RabbitMQ:</strong> Event Sourcing requires storing events permanently (Event Store). RabbitMQ alone is just messaging.</li>
+                    </ul>
+                </div>
+
+                <div class="summary-box">
+                    <h3>Monitoring System Summary</h3>
+                    <ul>
+                        <li><strong>Prometheus:</strong> Collects metrics (requests/sec, latency, errors) from all services every 15 seconds via /metrics endpoints.</li>
+                        <li><strong>Grafana:</strong> Visualizes Prometheus metrics in dashboards for monitoring system health and performance.</li>
+                        <li><strong>Jaeger:</strong> Distributed tracing system that tracks requests across services, showing latency and dependencies.</li>
+                        <li><strong>Elasticsearch:</strong> Stores Jaeger trace data for querying and analysis.</li>
+                        <li><strong>Instrumentation:</strong> All services use Prometheus Flask Exporter + OpenTelemetry for automatic metrics and trace collection.</li>
+                    </ul>
+                </div>
+
+                <div class="diagram-container">
+                    <div class="diagram-header">
+                        <h3 class="diagram-title">Complete System Architecture</h3>
+                        <div class="download-buttons">
+                            <button class="download-btn" onclick="downloadDiagram('diagram-complete-system', 'Complete_System_Architecture')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download PNG
+                            </button>
+                            <button class="download-btn" onclick="downloadSVG('diagram-complete-system', 'Complete_System_Architecture')">
+                                <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                                Download SVG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mermaid" id="diagram-complete-system">
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#2196f3','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f1f8e9','edgeLabelBackground':'#ffffff','clusterBkg':'#f5f5f5','clusterBorder':'#9e9e9e'},'flowchart':{'curve':'basis','diagramPadding':8}}}%%
+graph LR
+    Client[Client Apps] --> Gateway[API Gateway]
+
+    Gateway --> UserMS[User Service<br/>CQRS + Events]
+    Gateway --> JobMS[Job Service<br/>CQRS + Events]
+    Gateway --> Other[Auth, CV, Matching<br/>Notification Services]
+
+    UserMS --> UserDB[(PostgreSQL)]
+    JobMS --> JobDB[(PostgreSQL)]
+
+    UserMS --> EventStore1[(Event Store)]
+    JobMS --> EventStore2[(Event Store)]
+
+    EventStore1 --> RabbitMQ[RabbitMQ<br/>Message Broker]
+    EventStore2 --> RabbitMQ
+
+    RabbitMQ --> Other
+
+    UserMS --> Monitoring[Prometheus + Grafana<br/>Jaeger + Elasticsearch]
+    JobMS --> Monitoring
+    Other --> Monitoring
+
+    style EventStore1 fill:#ffe0b2
+    style EventStore2 fill:#ffe0b2
+    style RabbitMQ fill:#ffcdd2
+    style Monitoring fill:#bbdefb
+                    </div>
+                    <div class="description">
+                        <h4>Description:</h4>
+                        <p>The complete TalentLink system architecture showing all components working together: Client → Gateway → Microservices (with CQRS + Event Sourcing) → RabbitMQ (messaging) + Monitoring (Prometheus/Grafana + Jaeger/Elasticsearch).</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>TalentLink Architecture Documentation | Generated: <span id="date"></span></p>
+            <p>Use download buttons above each diagram to export as PNG or SVG</p>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Mermaid with straight lines configuration
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                fontFamily: 'Segoe UI, Arial, sans-serif',
+                fontSize: '14px'
+            },
+            flowchart: {
+                curve: 'linear',  // Straight lines!
+                nodeSpacing: 50,
+                rankSpacing: 80,
+                padding: 15
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: true
+            }
+        });
+
+        // Set current date
+        document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Function to download diagram as PNG
+        async function downloadDiagram(elementId, filename) {
+            try {
+                const element = document.getElementById(elementId);
+                const canvas = await html2canvas(element, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    logging: false,
+                    useCORS: true
+                });
+
+                const link = document.createElement('a');
+                link.download = `${filename}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Error generating PNG:', error);
+                alert('Error generating PNG. Please try SVG download instead.');
+            }
+        }
+
+        // Function to download diagram as SVG
+        function downloadSVG(elementId, filename) {
+            try {
+                const element = document.getElementById(elementId);
+                const svgElement = element.querySelector('svg');
+
+                if (!svgElement) {
+                    alert('SVG not found. Please wait for diagram to render.');
+                    return;
+                }
+
+                // Clone the SVG to avoid modifying the original
+                const clonedSvg = svgElement.cloneNode(true);
+
+                // Add white background
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('width', '100%');
+                rect.setAttribute('height', '100%');
+                rect.setAttribute('fill', 'white');
+                clonedSvg.insertBefore(rect, clonedSvg.firstChild);
+
+                // Serialize SVG
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(clonedSvg);
+
+                // Create blob and download
+                const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${filename}.svg`;
+                link.click();
+
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error generating SVG:', error);
+                alert('Error generating SVG. Please try again.');
+            }
+        }
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // Smooth scrolling for TOC links
+        document.querySelectorAll('.toc a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

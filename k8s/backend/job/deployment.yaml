@@ -46,9 +46,24 @@ spec:
               value: "talentlink"
             - name: RABBITMQ_PASS
               value: "talentlink123"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_ENABLED
+              value: "true"
+            - name: REDIS_DEFAULT_TTL
+              value: "300"
           volumeMounts:
             - name: uploads
               mountPath: /app/uploads
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
           readinessProbe:
             httpGet:
               path: /api/jobs/health

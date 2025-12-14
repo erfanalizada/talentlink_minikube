@@ -1,10 +1,12 @@
 """
 Command handlers for write operations.
 Handlers execute commands using the existing service layer.
+Implements cache invalidation for data consistency.
 """
 from typing import Optional
 from services import JobService, JobApplicationService
 from models import Job, JobApplication, ApplicationStatus
+from cache import invalidate_cache
 from cqrs.commands import (
     CreateJobCommand,
     UpdateJobCommand,
@@ -25,22 +27,26 @@ class JobCommandHandler:
     def handle_create_job(self, command: CreateJobCommand) -> Job:
         """
         Handle CreateJobCommand.
-        Creates a new job posting.
+        Creates a new job posting and invalidates relevant caches.
         """
-        return self.service.create_job(
+        job = self.service.create_job(
             employer_id=command.employer_id,
             title=command.title,
             description=command.description,
             salary=command.salary,
             skills=command.skills
         )
+        # Invalidate all jobs cache and employer's jobs cache
+        invalidate_cache("jobs:all:*")
+        invalidate_cache(f"jobs:by_employer:*{command.employer_id}*")
+        return job
 
     def handle_update_job(self, command: UpdateJobCommand) -> Optional[Job]:
         """
         Handle UpdateJobCommand.
-        Updates an existing job posting.
+        Updates an existing job posting and invalidates relevant caches.
         """
-        return self.service.update_job(
+        job = self.service.update_job(
             job_id=command.job_id,
             employer_id=command.employer_id,
             title=command.title,
@@ -48,16 +54,22 @@ class JobCommandHandler:
             salary=command.salary,
             skills=command.skills
         )
+        # Invalidate all jobs caches
+        invalidate_cache("jobs:*")
+        return job
 
     def handle_delete_job(self, command: DeleteJobCommand) -> bool:
         """
         Handle DeleteJobCommand.
-        Deletes a job posting.
+        Deletes a job posting and invalidates relevant caches.
         """
-        return self.service.delete_job(
+        result = self.service.delete_job(
             job_id=command.job_id,
             employer_id=command.employer_id
         )
+        # Invalidate all jobs caches
+        invalidate_cache("jobs:*")
+        return result
 
 
 class ApplicationCommandHandler:
@@ -70,15 +82,18 @@ class ApplicationCommandHandler:
     def handle_apply_to_job(self, command: ApplyToJobCommand) -> JobApplication:
         """
         Handle ApplyToJobCommand.
-        Creates a new job application.
+        Creates a new job application and invalidates relevant caches.
         """
-        return self.service.create_application(
+        application = self.service.create_application(
             job_id=command.job_id,
             employee_id=command.employee_id,
             cv_base64=command.cv_base64,
             portfolio_url=command.portfolio_url,
             cv_url=command.cv_url
         )
+        # Invalidate jobs with status cache for this employee
+        invalidate_cache(f"jobs:with_status:*{command.employee_id}*")
+        return application
 
     def handle_update_application_status(self, command: UpdateApplicationStatusCommand) -> Optional[JobApplication]:
         """

@@ -78,6 +78,15 @@ spec:
             - name: RABBITMQ_PASS
               value: "talentlink123"
 
+          # ---------------- RESOURCE LIMITS ----------------
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
           # ---------------- HEALTH CHECKS ----------------
           readinessProbe:
             httpGet:

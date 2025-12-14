@@ -20,7 +20,15 @@ print(f"🔗 Connecting to database:")
 print(f"   DATABASE_URL: {DATABASE_URL}")
 print("=" * 60)
 
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(
+    DATABASE_URL,
+    echo=True,
+    pool_size=20,          # Number of connections to keep open
+    max_overflow=10,       # Additional connections when pool is exhausted
+    pool_timeout=30,       # Seconds to wait for a connection
+    pool_recycle=3600,     # Recycle connections after 1 hour
+    pool_pre_ping=True     # Verify connections before using them
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
