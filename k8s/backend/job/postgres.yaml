@@ -38,6 +38,13 @@ spec:
               value: jobservice123
           ports:
             - containerPort: 5432
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: data
@@ -47,16 +54,24 @@ spec:
                 - pg_isready
                 - -U
                 - jobservice
-            initialDelaySeconds: 5
+                - -d
+                - jobdb
+            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 5
           livenessProbe:
             exec:
               command:
                 - pg_isready
                 - -U
                 - jobservice
-            initialDelaySeconds: 10
-            periodSeconds: 20
+                - -d
+                - jobdb
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
       volumes:
         - name: data
           persistentVolumeClaim:

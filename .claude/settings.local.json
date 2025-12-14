@@ -29,7 +29,17 @@
       "Bash(ls -la \"C:\\Users\\Public\\talentlink_minikube\\doc\"\" | grep -i \".md|.txt \")",
       "Bash(python -m json.tool:*)",
       "Bash(kubectl top:*)",
-      "Bash(ls -la \"C:\\Users\\Public\\talentlink_minikube\\doc\"\" | grep -i \"SYSTEM \")"
+      "Bash(ls -la \"C:\\Users\\Public\\talentlink_minikube\\doc\"\" | grep -i \"SYSTEM \")",
+      "Bash(kubectl cluster-info:*)",
+      "Bash(minikube config get:*)",
+      "Bash(minikube config set:*)",
+      "Bash(minikube profile:*)",
+      "Bash(minikube stop:*)",
+      "Bash(docker stats:*)",
+      "Bash(minikube delete:*)",
+      "Bash(minikube addons:*)",
+      "Bash(kubectl rollout restart:*)",
+      "Bash(kubectl create:*)"
     ],
     "deny": [],
     "ask": []
