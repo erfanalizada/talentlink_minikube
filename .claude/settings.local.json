@@ -39,7 +39,9 @@
       "Bash(minikube delete:*)",
       "Bash(minikube addons:*)",
       "Bash(kubectl rollout restart:*)",
-      "Bash(kubectl create:*)"
+      "Bash(kubectl create:*)",
+      "Bash(kubectl create secret:*)",
+      "Bash(kubectl run:*)"
     ],
     "deny": [],
     "ask": []

@@ -37,13 +37,13 @@ spec:
               value: "http://keycloak:8080"
 
             - name: KEYCLOAK_REALM
-              value: "talentlink"
+              value: "TalentLink"
 
             - name: KEYCLOAK_PUBLIC_CLIENT_ID
               value: "frontend-client"
 
             - name: KEYCLOAK_CONFIDENTIAL_CLIENT_ID
-              value: "backend-client"
+              value: "backend-service"
 
             - name: KEYCLOAK_CONFIDENTIAL_SECRET
               valueFrom:
